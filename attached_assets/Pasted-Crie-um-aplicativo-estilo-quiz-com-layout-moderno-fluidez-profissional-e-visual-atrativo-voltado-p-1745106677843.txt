@@ -1,0 +1,75 @@
+Crie um aplicativo estilo quiz, com layout moderno, fluidez profissional e visual atrativo voltado para usuários de iPhone e Android, cujo objetivo é ajudar o usuário a identificar possíveis sinais de TDAH (Transtorno de Déficit de Atenção e Hiperatividade) por meio de perguntas baseadas em critérios reconhecidos, como o DSM-5.
+
+1. Design e experiência do usuário (UX/UI):
+
+Interface clean, minimalista, com transições suaves e animações leves;
+
+Compatível com iPhones (incluindo notch) e Android (diversos tamanhos de tela);
+
+Dark mode e acessibilidade (modo de leitura, contraste e voz);
+
+Inspiração visual: apps como Headspace, Fabulous, Finch.
+
+2. Estrutura do app:
+
+Tela inicial: com breve explicação do app, botão “Começar Quiz” e opção de login (Google, Apple, e-mail);
+
+Quiz inteligente:
+
+15 a 30 perguntas com múltipla escolha (ex: Nunca / Às vezes / Frequentemente / Sempre);
+
+Sistema de pontuação interna baseado em critérios clínicos (sem ser diagnóstico);
+
+Perguntas adaptáveis com lógica condicional (perguntas extras se o usuário marcar opções mais graves);
+
+Tela de resultado personalizada:
+
+Exibe o nível de indícios (Baixo, Moderado, Alto);
+
+Explicações personalizadas com tom acolhedor;
+
+Sugestão de próximos passos (ex: procurar psicólogo, baixar um e-book, agendar avaliação).
+
+3. Funcionalidades extras para valor agregado:
+
+Histórico de testes: acompanhar evolução dos resultados em diferentes momentos;
+
+Modo diário: perguntas rápidas diárias para autoconhecimento e rastreamento emocional;
+
+Diário de foco e emoções: o usuário registra como se sentiu no dia e o que conseguiu concluir;
+
+Notificações inteligentes: lembretes com frases motivacionais ou check-ins rápidos;
+
+Área de conteúdo: artigos, vídeos curtos e dicas práticas sobre TDAH, atenção, foco, produtividade e saúde mental.
+
+4. Ideias de monetização:
+
+Plano freemium:
+
+Grátis: quiz principal e resultado básico;
+
+Premium: resultados detalhados, histórico, acesso ao conteúdo exclusivo, testes complementares (como ansiedade, dislexia, etc.).
+
+Assinatura mensal/anual com acesso a recursos completos (ex: R$ 14,90/mês ou R$ 99,90/ano);
+
+Venda de e-books e cursos curtos sobre foco, produtividade e organização;
+
+Parcerias com psicólogos ou clínicas para agendamento de avaliação (comissão por conversão);
+
+Publicidade nativa não invasiva (ex: banners suaves ou conteúdos patrocinados sobre saúde e bem-estar);
+
+Clube de desafios gamificados para foco, rotina e autoconhecimento (com conquistas e rankings).
+
+5. Tecnologias sugeridas:
+
+Desenvolver em Flutter para compatibilidade total com iOS e Android;
+
+Backend com Firebase (autenticação, banco de dados, notificações push);
+
+Design seguindo as diretrizes do Material Design (Android) e Human Interface Guidelines (iOS).
+
+6. Observações importantes:
+
+O app deve deixar claro que não fornece diagnóstico clínico, apenas uma avaliação preliminar para autoconhecimento;
+
+Todos os conteúdos devem ser baseados em fontes confiáveis e estudos clínicos.

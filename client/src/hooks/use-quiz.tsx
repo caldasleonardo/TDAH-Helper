@@ -70,15 +70,18 @@ export function QuizProvider({ children }: { children: ReactNode }) {
         category = "moderate";
       }
       
+      // Converter o objeto answers para uma string JSON
+      const answersJson = JSON.stringify(answers);
+      
       const quizResult = {
         userId: user?.id,
         score: totalScore,
         category,
-        answers,
+        answers: answersJson,
         inattentionScore,
         hyperactivityScore,
         impulsivityScore,
-        date: new Date(),
+        // Não enviar a data, deixar o servidor definir com defaultNow()
       };
       
       const res = await apiRequest("POST", "/api/quiz-results", quizResult);

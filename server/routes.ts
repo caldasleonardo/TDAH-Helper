@@ -255,13 +255,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : process.env.STRIPE_PRICE_MONTHLY; // ID do preço para assinatura mensal
       
       // Criar uma assinatura no Stripe
+      // Criar uma assinatura no Stripe
+      // Primeiro, criamos a assinatura sem expandir payment_intent
       const subscription = await stripe.subscriptions.create({
         customer: customerId,
         items: [{
           price: priceId,
         }],
         payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent'],
+      });
+      
+      // Depois, buscamos a fatura separadamente
+      const invoice = await stripe.invoices.retrieve(subscription.latest_invoice as string, {
+        expand: ['payment_intent']
       });
       
       // Data de início e fim do período atual
@@ -297,20 +303,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isPremium: true 
       });
       
-      // Responder com os detalhes da assinatura e o clientSecret para pagamento
-      // Acessar payment_intent com verificação de tipo
-      if (!subscription.latest_invoice || typeof subscription.latest_invoice === 'string') {
-        throw new Error('Erro ao obter dados de faturamento da assinatura');
+      // Verificar se temos uma intent de pagamento na fatura
+      if (!invoice.payment_intent || typeof invoice.payment_intent === 'string') {
+        throw new Error('Erro ao obter dados de pagamento da assinatura');
       }
       
-      const paymentIntent = (subscription.latest_invoice as any).payment_intent;
-      if (!paymentIntent || !paymentIntent.client_secret) {
-        throw new Error('Erro ao obter dados de pagamento da assinatura');
+      // Obter o clientSecret para o pagamento
+      const clientSecret = invoice.payment_intent.client_secret;
+      if (!clientSecret) {
+        throw new Error('Erro ao obter secret para pagamento da assinatura');
       }
       
       res.json({
         subscription: savedSubscription,
-        clientSecret: paymentIntent.client_secret
+        clientSecret: clientSecret
       });
       
     } catch (error: any) {

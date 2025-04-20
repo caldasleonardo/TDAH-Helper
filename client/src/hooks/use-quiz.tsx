@@ -6,6 +6,24 @@ import { questions } from "@/lib/quiz-data";
 import { useAuth } from "./use-auth";
 import { useLocation } from "wouter";
 
+type SectionProgress = {
+  inattention: {
+    total: number;
+    answered: number;
+    percentage: number;
+  };
+  hyperactivity: {
+    total: number;
+    answered: number;
+    percentage: number;
+  };
+  impulsivity: {
+    total: number;
+    answered: number;
+    percentage: number;
+  };
+};
+
 type QuizContextType = {
   currentQuestion: number;
   totalQuestions: number;
@@ -13,6 +31,8 @@ type QuizContextType = {
   answers: Record<number, number>;
   isComplete: boolean;
   progress: number;
+  sectionProgress: SectionProgress;
+  currentQuestionType: string;
   selectAnswer: (questionIndex: number, answerValue: number) => void;
   goToNextQuestion: () => void;
   goToPreviousQuestion: () => void;
@@ -34,6 +54,50 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   
   const totalQuestions = questions.length;
   const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+  const currentQuestionType = questions[currentQuestion]?.type || '';
+  
+  // Calculate progress for each section
+  const calculateSectionProgress = (): SectionProgress => {
+    // Count total questions by type
+    const totalByType = questions.reduce((acc, question) => {
+      acc[question.type] = (acc[question.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Count answered questions by type
+    const answeredByType = Object.keys(answers).reduce((acc, questionIndex) => {
+      const questionType = questions[parseInt(questionIndex)].type;
+      acc[questionType] = (acc[questionType] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Calculate percentages
+    return {
+      inattention: {
+        total: totalByType.inattention || 0,
+        answered: answeredByType.inattention || 0,
+        percentage: totalByType.inattention 
+          ? ((answeredByType.inattention || 0) / totalByType.inattention) * 100 
+          : 0
+      },
+      hyperactivity: {
+        total: totalByType.hyperactivity || 0,
+        answered: answeredByType.hyperactivity || 0,
+        percentage: totalByType.hyperactivity 
+          ? ((answeredByType.hyperactivity || 0) / totalByType.hyperactivity) * 100 
+          : 0
+      },
+      impulsivity: {
+        total: totalByType.impulsivity || 0,
+        answered: answeredByType.impulsivity || 0,
+        percentage: totalByType.impulsivity 
+          ? ((answeredByType.impulsivity || 0) / totalByType.impulsivity) * 100 
+          : 0
+      }
+    };
+  };
+  
+  const sectionProgress = calculateSectionProgress();
   
   // Submit quiz results mutation
   const { mutate: submitQuizMutation, isPending: isSubmitting } = useMutation({
@@ -153,6 +217,8 @@ export function QuizProvider({ children }: { children: ReactNode }) {
         answers,
         isComplete,
         progress,
+        sectionProgress,
+        currentQuestionType,
         selectAnswer,
         goToNextQuestion,
         goToPreviousQuestion,

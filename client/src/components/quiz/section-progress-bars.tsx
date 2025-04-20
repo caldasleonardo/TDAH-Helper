@@ -33,6 +33,7 @@ export function SectionProgressBars({ sections, currentType, className }: Sectio
       color: "bg-blue-500",
       activeColor: "bg-blue-600",
       lightColor: "bg-blue-100",
+      textColor: "text-blue-700 dark:text-blue-400",
     },
     hyperactivity: {
       icon: ActivityIcon,
@@ -40,6 +41,7 @@ export function SectionProgressBars({ sections, currentType, className }: Sectio
       color: "bg-green-500",
       activeColor: "bg-green-600",
       lightColor: "bg-green-100",
+      textColor: "text-green-700 dark:text-green-400",
     },
     impulsivity: {
       icon: ZapIcon,
@@ -47,83 +49,62 @@ export function SectionProgressBars({ sections, currentType, className }: Sectio
       color: "bg-orange-500",
       activeColor: "bg-orange-600",
       lightColor: "bg-orange-100",
+      textColor: "text-orange-700 dark:text-orange-400",
     },
   };
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("", className)}>
       <TooltipProvider>
-        {Object.entries(sections).map(([type, data]) => {
-          const info = sectionInfo[type as keyof typeof sectionInfo];
-          const Icon = info.icon;
-          const isActive = currentType === type;
-          
-          return (
-            <div key={type} className="space-y-1">
-              <div className="flex items-center text-sm text-neutral-700 dark:text-neutral-300 mb-1">
-                <Icon 
-                  className={cn(
-                    "h-4 w-4 mr-2", 
-                    isActive ? "text-primary" : "text-neutral-500"
-                  )} 
-                />
-                <span>{info.label}</span>
-                <span className="text-neutral-500 dark:text-neutral-400 ml-auto">
-                  {data.answered}/{data.total}
-                </span>
-              </div>
-              
-              <Tooltip>
+        <div className="flex gap-1.5 mb-2">
+          {Object.entries(sections).map(([type, data]) => {
+            const info = sectionInfo[type as keyof typeof sectionInfo];
+            const Icon = info.icon;
+            const isActive = currentType === type;
+            
+            return (
+              <Tooltip key={type}>
                 <TooltipTrigger asChild>
-                  <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                    <motion.div
-                      className={cn(
-                        "h-full rounded-full", 
-                        isActive ? info.activeColor : info.color
-                      )}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${data.percentage}%` }}
-                      transition={{ 
-                        duration: 0.5, 
-                        ease: "easeOut",
-                        delay: isActive ? 0 : 0.1 
-                      }}
-                    />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <Icon 
+                        className={cn(
+                          "h-3 w-3", 
+                          isActive ? info.textColor : "text-neutral-500"
+                        )} 
+                      />
+                      <span className={cn(
+                        "text-xs font-medium",
+                        isActive ? info.textColor : "text-neutral-500"
+                      )}>
+                        {data.answered}/{data.total}
+                      </span>
+                    </div>
+                    
+                    <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                      <motion.div
+                        className={cn(
+                          "h-full rounded-full", 
+                          isActive ? info.activeColor : info.color
+                        )}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${data.percentage}%` }}
+                        transition={{ 
+                          duration: 0.5, 
+                          ease: "easeOut",
+                          delay: isActive ? 0 : 0.1 
+                        }}
+                      />
+                    </div>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent>
-                  <p>{`${Math.round(data.percentage)}% completo`}</p>
+                <TooltipContent side="bottom" className="py-1 px-2 text-xs">
+                  <p>{info.label}: {Math.round(data.percentage)}% completo</p>
                 </TooltipContent>
               </Tooltip>
-              
-              <div className="grid grid-cols-12 gap-0.5 mt-1">
-                {Array.from({ length: data.total }).map((_, i) => {
-                  const isAnswered = i < data.answered;
-                  return (
-                    <motion.div
-                      key={i}
-                      className={cn(
-                        "h-1 rounded-sm",
-                        isAnswered 
-                          ? isActive ? info.activeColor : info.color 
-                          : info.lightColor
-                      )}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ 
-                        opacity: isAnswered ? 1 : 0.4,
-                        scale: isAnswered ? 1 : 0.8,
-                      }}
-                      transition={{ 
-                        duration: 0.3, 
-                        delay: i * 0.03
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </TooltipProvider>
     </div>
   );

@@ -13,36 +13,34 @@ function QuizContent() {
   return (
     <div className="max-w-md mx-auto">
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
+        className="mb-2"
       >
-        <h2 className="text-xl font-semibold mb-2 text-center">
+        <h2 className="text-lg font-semibold text-center">
           Avaliação de TDAH
         </h2>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-4 text-center text-sm">
-          Responda conforme sua experiência nos últimos 6 meses
-        </p>
       </motion.div>
       
-      <ProgressBar value={progress} className="mb-3" />
-      
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="mb-6"
-      >
-        <SectionProgressBars 
-          sections={sectionProgress}
-          currentType={currentQuestionType}
-          className="mb-6"
-        />
-      </motion.div>
+      <div className="mb-4">
+        <ProgressBar value={progress} className="mb-1.5" />
+        
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <SectionProgressBars 
+            sections={sectionProgress}
+            currentType={currentQuestionType}
+          />
+        </motion.div>
+      </div>
       
       <QuestionCard />
       
-      <p className="text-neutral-500 dark:text-neutral-400 text-sm text-center mt-4">
+      <p className="text-neutral-500 dark:text-neutral-400 text-xs text-center mt-3">
         Você pode pausar o quiz a qualquer momento e continuar mais tarde.
       </p>
     </div>

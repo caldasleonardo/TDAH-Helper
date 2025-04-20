@@ -5,7 +5,7 @@ import { useRoute, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChartPieIcon, UserIcon, BookIcon, CalendarCheckIcon, UsersIcon, ShareIcon, RotateCcwIcon, SaveIcon, CheckCircle } from "lucide-react";
+import { ChartPieIcon, UserIcon, BookIcon, CalendarCheckIcon, UsersIcon, ShareIcon, RotateCcwIcon, SaveIcon, CheckCircle, ArrowRight } from "lucide-react";
 import { interpretations } from "@/lib/quiz-data";
 import { motion } from "framer-motion";
 
@@ -287,6 +287,23 @@ export default function ResultsPage() {
                             Adquirir agora
                           </Button>
                         </Link>
+                      </div>
+                      
+                      <div className="mt-4 border-t pt-4 border-neutral-200 dark:border-neutral-700">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-sm font-medium">Quer acesso a todos os relatórios?</h4>
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                              Assine o plano premium e obtenha acesso ilimitado!
+                            </p>
+                          </div>
+                          <Link href="/premium">
+                            <Button variant="outline" size="sm" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950/30">
+                              Conhecer planos
+                              <ArrowRight className="ml-1 h-3 w-3" />
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                       
                       <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center">

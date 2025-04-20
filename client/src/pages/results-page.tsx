@@ -5,7 +5,7 @@ import { useRoute, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChartPieIcon, UserIcon, BookIcon, CalendarCheckIcon, UsersIcon, ShareIcon, RotateCcwIcon, SaveIcon, CheckCircle, ArrowRight } from "lucide-react";
+import { ChartPieIcon, UserIcon, BookIcon, CalendarCheckIcon, UsersIcon, ShareIcon, RotateCcwIcon, SaveIcon, CheckCircle, ArrowRight, SparklesIcon, ZapIcon, ArrowRightCircleIcon, TagIcon } from "lucide-react";
 import { interpretations } from "@/lib/quiz-data";
 import { motion } from "framer-motion";
 
@@ -204,6 +204,173 @@ export default function ResultsPage() {
                   </div>
                 </div>
                 
+                {/* Relatório Premium - Versão Destacada */}
+                <motion.div 
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="relative bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/40 rounded-lg p-6 mb-8 border-2 border-purple-300 dark:border-purple-700 shadow-lg"
+                >
+                  {/* Etiqueta Especial */}
+                  <div className="absolute -top-3 -right-2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center">
+                    <TagIcon className="h-3 w-3 mr-1" />
+                    ESPECIAL
+                  </div>
+                  
+                  <motion.div 
+                    animate={{ 
+                      rotate: [0, 5, 0, -5, 0],
+                      scale: [1, 1.05, 1]
+                    }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      repeatType: "reverse" 
+                    }}
+                    className="absolute -top-4 -left-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-md transform rotate-12"
+                  >
+                    Destaque
+                  </motion.div>
+                  
+                  <div className="flex items-start mb-4">
+                    <motion.div 
+                      animate={{ 
+                        y: [0, -5, 0],
+                        rotate: [0, 5, 0, -5, 0]
+                      }}
+                      transition={{ 
+                        duration: 3, 
+                        repeat: Infinity,
+                        repeatType: "reverse" 
+                      }}
+                      className="h-14 w-14 flex items-center justify-center bg-purple-600 dark:bg-purple-600 rounded-full mr-4 shadow-md"
+                    >
+                      <SparklesIcon className="h-7 w-7 text-white" />
+                    </motion.div>
+                    <div>
+                      <h3 className="font-bold text-xl text-purple-800 dark:text-purple-300">Relatório Completo e Detalhado</h3>
+                      <div className="flex items-center text-purple-600 dark:text-purple-400 font-medium">
+                        <ZapIcon className="h-4 w-4 mr-1" />
+                        <p className="text-sm">
+                          {result.premiumPaid ? 'Você já possui acesso ao relatório completo' : 'Análise aprofundada personalizada para você'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/70 dark:bg-black/20 rounded-lg p-4 mb-4 border border-purple-200 dark:border-purple-800/40">
+                    <h4 className="font-semibold text-purple-800 dark:text-purple-300 mb-3 flex items-center">
+                      <ZapIcon className="h-4 w-4 mr-2" />
+                      O que está incluído:
+                    </h4>
+                    <ul className="space-y-2.5">
+                      <motion.li 
+                        whileHover={{ x: 5 }}
+                        className="flex items-start"
+                      >
+                        <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5 font-bold">✓</div>
+                        <span className="text-sm text-purple-900 dark:text-purple-100 font-medium">Questionário estendido com 30 perguntas específicas</span>
+                      </motion.li>
+                      <motion.li 
+                        whileHover={{ x: 5 }}
+                        className="flex items-start"
+                      >
+                        <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5 font-bold">✓</div>
+                        <span className="text-sm text-purple-900 dark:text-purple-100 font-medium">Análise detalhada por sintoma e comportamento</span>
+                      </motion.li>
+                      <motion.li 
+                        whileHover={{ x: 5 }}
+                        className="flex items-start"
+                      >
+                        <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5 font-bold">✓</div>
+                        <span className="text-sm text-purple-900 dark:text-purple-100 font-medium">Recomendações personalizadas para cada área</span>
+                      </motion.li>
+                      <motion.li 
+                        whileHover={{ x: 5 }}
+                        className="flex items-start"
+                      >
+                        <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5 font-bold">✓</div>
+                        <span className="text-sm text-purple-900 dark:text-purple-100 font-medium">Documento em PDF com gráficos e estatísticas</span>
+                      </motion.li>
+                    </ul>
+                  </div>
+                  
+                  {result.premiumPaid ? (
+                    <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-md mb-3 flex items-center">
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                      >
+                        <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 mr-3 flex-shrink-0" />
+                      </motion.div>
+                      <div>
+                        <h4 className="font-medium text-green-800 dark:text-green-300 text-base">Relatório Adquirido</h4>
+                        <p className="text-green-700 dark:text-green-500 text-sm">
+                          Você já possui acesso completo a este relatório
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-5 bg-white/70 dark:bg-black/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800/40">
+                        <div>
+                          <div className="flex items-baseline">
+                            <motion.span 
+                              animate={{ scale: [1, 1.1, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              className="text-3xl font-extrabold text-purple-700 dark:text-purple-400"
+                            >
+                              R$12,90
+                            </motion.span>
+                            <span className="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 text-xs font-bold ml-2 px-2 py-0.5 rounded">
+                              pagamento único
+                            </span>
+                          </div>
+                          <p className="text-xs text-purple-700 dark:text-purple-300 mt-1">
+                            Sem mensalidades ou taxas adicionais
+                          </p>
+                        </div>
+                        <Link href={`/checkout/${resultId}`}>
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <Button className="bg-purple-600 hover:bg-purple-700 text-base px-5 py-6 space-x-2 font-bold shadow-md">
+                              <span>Adquirir agora</span>
+                              <ArrowRightCircleIcon className="h-5 w-5" />
+                            </Button>
+                          </motion.div>
+                        </Link>
+                      </div>
+                      
+                      <div className="mt-3 bg-indigo-50/70 dark:bg-indigo-950/20 rounded-lg p-4 border border-indigo-200 dark:border-indigo-800/40">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-sm font-semibold text-indigo-800 dark:text-indigo-300">Quer acesso a todos os relatórios?</h4>
+                            <p className="text-xs text-indigo-600 dark:text-indigo-400">
+                              Assine o plano premium e obtenha acesso ilimitado!
+                            </p>
+                          </div>
+                          <Link href="/premium">
+                            <motion.div
+                              whileHover={{ x: 5 }}
+                            >
+                              <Button variant="outline" size="sm" className="border-indigo-300 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-400 dark:hover:bg-indigo-950/30">
+                                Conhecer planos
+                                <ArrowRight className="ml-1 h-3 w-3" />
+                              </Button>
+                            </motion.div>
+                          </Link>
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-purple-500 dark:text-purple-400 text-center mt-4 font-medium">
+                        Relatório enviado para seu e-mail em até 24 horas
+                      </p>
+                    </>
+                  )}
+                </motion.div>
+                
                 {/* Personalized explanation */}
                 <div className="mb-6">
                   <h3 className="font-semibold mb-3 dark:text-white">O que isso significa?</h3>
@@ -230,87 +397,6 @@ export default function ResultsPage() {
                       </li>
                     ))}
                   </ul>
-                </div>
-                
-                {/* Relatório Premium */}
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 rounded-lg p-5 mb-6 border border-purple-200 dark:border-purple-800">
-                  <div className="flex items-start mb-3">
-                    <div className="h-10 w-10 flex items-center justify-center bg-purple-600 dark:bg-purple-600 rounded-full mr-3">
-                      <ChartPieIcon className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg dark:text-white">Relatório Completo e Detalhado</h3>
-                      <p className="text-neutral-600 dark:text-neutral-300 text-sm">
-                        {result.premiumPaid ? 'Você já possui acesso ao relatório completo' : 'Obtenha uma análise aprofundada dos seus resultados'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <ul className="space-y-2 mb-4">
-                    <li className="flex items-start">
-                      <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5">✓</div>
-                      <span className="text-sm text-neutral-700 dark:text-neutral-300">Questionário estendido com 30 perguntas específicas</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5">✓</div>
-                      <span className="text-sm text-neutral-700 dark:text-neutral-300">Análise detalhada por sintoma e comportamento</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5">✓</div>
-                      <span className="text-sm text-neutral-700 dark:text-neutral-300">Recomendações personalizadas para cada área</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5">✓</div>
-                      <span className="text-sm text-neutral-700 dark:text-neutral-300">Documento em PDF com gráficos e estatísticas</span>
-                    </li>
-                  </ul>
-                  
-                  {result.premiumPaid ? (
-                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-md mb-3 flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mr-2 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-medium text-green-800 dark:text-green-300 text-sm">Relatório Adquirido</h4>
-                        <p className="text-green-600 dark:text-green-400 text-xs">
-                          Você já possui acesso completo a este relatório
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-baseline">
-                          <span className="text-2xl font-bold text-purple-700 dark:text-purple-400">R$12,90</span>
-                          <span className="text-xs text-neutral-500 dark:text-neutral-400 ml-1">pagamento único</span>
-                        </div>
-                        <Link href={`/checkout/${resultId}`}>
-                          <Button className="bg-purple-600 hover:bg-purple-700">
-                            Adquirir agora
-                          </Button>
-                        </Link>
-                      </div>
-                      
-                      <div className="mt-4 border-t pt-4 border-neutral-200 dark:border-neutral-700">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="text-sm font-medium">Quer acesso a todos os relatórios?</h4>
-                            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                              Assine o plano premium e obtenha acesso ilimitado!
-                            </p>
-                          </div>
-                          <Link href="/premium">
-                            <Button variant="outline" size="sm" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950/30">
-                              Conhecer planos
-                              <ArrowRight className="ml-1 h-3 w-3" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                      
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center">
-                        Relatório enviado para seu e-mail em até 24 horas
-                      </p>
-                    </>
-                  )}
                 </div>
 
                 {/* Action buttons */}

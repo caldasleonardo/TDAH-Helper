@@ -3,7 +3,12 @@ import {
   quizResults, type QuizResult, type InsertQuizResult,
   subscriptions, type Subscription, type InsertSubscription,
   premiumFeatures, type PremiumFeature,
-  userPremiumFeatures
+  userPremiumFeatures,
+  adminUsers, type AdminUser, type InsertAdminUser,
+  appConfig, type AppConfig, type InsertAppConfig,
+  content, type Content, type InsertContent,
+  media, type Media, type InsertMedia,
+  auditLog, type AuditLog, type InsertAuditLog
 } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
@@ -40,6 +45,48 @@ export interface IStorage {
   getActivePremiumFeatures(): Promise<PremiumFeature[]>;
   getUserPremiumFeatures(userId: number): Promise<PremiumFeature[]>;
   addUserPremiumFeature(userId: number, featureId: number, expiresAt?: Date): Promise<boolean>;
+  
+  // Admin user management
+  getAdminUser(id: number): Promise<AdminUser | undefined>;
+  getAdminUserByUsername(username: string): Promise<AdminUser | undefined>;
+  createAdminUser(admin: InsertAdminUser): Promise<AdminUser>;
+  updateAdminUserLastLogin(id: number): Promise<AdminUser>;
+  getAllAdminUsers(): Promise<AdminUser[]>;
+  
+  // App configuration management
+  getAppConfig(key: string): Promise<AppConfig | undefined>;
+  getAppConfigsByCategory(category: string): Promise<AppConfig[]>;
+  getAllAppConfigs(): Promise<AppConfig[]>;
+  setAppConfig(config: InsertAppConfig): Promise<AppConfig>;
+  updateAppConfig(id: number, value: string, updatedBy: number): Promise<AppConfig>;
+  deleteAppConfig(id: number): Promise<boolean>;
+  
+  // Content management
+  getContent(id: number): Promise<Content | undefined>;
+  getContentBySlug(slug: string): Promise<Content | undefined>;
+  getContentsByCategory(category: string): Promise<Content[]>;
+  getAllContents(includeUnpublished?: boolean): Promise<Content[]>;
+  createContent(content: InsertContent): Promise<Content>;
+  updateContent(id: number, data: Partial<InsertContent>): Promise<Content>;
+  deleteContent(id: number): Promise<boolean>;
+  
+  // Media management
+  getMedia(id: number): Promise<Media | undefined>;
+  getMediaByCategory(category: string): Promise<Media[]>;
+  getAllMedia(): Promise<Media[]>;
+  createMedia(media: InsertMedia): Promise<Media>;
+  deleteMedia(id: number): Promise<boolean>;
+  
+  // Audit logging
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(options?: { 
+    userId?: number, 
+    action?: string, 
+    entity?: string, 
+    fromDate?: Date, 
+    toDate?: Date,
+    limit?: number
+  }): Promise<AuditLog[]>;
   
   // Session store
   sessionStore: any; // Usando "any" para evitar erros de tipo com session.SessionStore
@@ -308,6 +355,290 @@ export class DatabaseStorage implements IStorage {
       console.error("Erro ao adicionar feature premium ao usuário:", error);
       return false;
     }
+  }
+
+  // Admin user management methods
+  async getAdminUser(id: number): Promise<AdminUser | undefined> {
+    const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+    return admin || undefined;
+  }
+
+  async getAdminUserByUsername(username: string): Promise<AdminUser | undefined> {
+    const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+    return admin || undefined;
+  }
+
+  async createAdminUser(insertAdmin: InsertAdminUser): Promise<AdminUser> {
+    const [admin] = await db
+      .insert(adminUsers)
+      .values(insertAdmin)
+      .returning();
+    
+    return admin;
+  }
+
+  async updateAdminUserLastLogin(id: number): Promise<AdminUser> {
+    const [admin] = await db
+      .update(adminUsers)
+      .set({ lastLogin: new Date() })
+      .where(eq(adminUsers.id, id))
+      .returning();
+      
+    return admin;
+  }
+
+  async getAllAdminUsers(): Promise<AdminUser[]> {
+    return await db
+      .select()
+      .from(adminUsers)
+      .orderBy(adminUsers.username);
+  }
+
+  // App configuration management methods
+  async getAppConfig(key: string): Promise<AppConfig | undefined> {
+    const [config] = await db.select().from(appConfig).where(eq(appConfig.key, key));
+    return config || undefined;
+  }
+
+  async getAppConfigsByCategory(category: string): Promise<AppConfig[]> {
+    return await db
+      .select()
+      .from(appConfig)
+      .where(eq(appConfig.category, category))
+      .orderBy(appConfig.key);
+  }
+
+  async getAllAppConfigs(): Promise<AppConfig[]> {
+    return await db
+      .select()
+      .from(appConfig)
+      .orderBy([appConfig.category, appConfig.key]);
+  }
+
+  async setAppConfig(config: InsertAppConfig): Promise<AppConfig> {
+    // Verifica se já existe uma configuração com a mesma chave
+    const existingConfig = await this.getAppConfig(config.key);
+    
+    if (existingConfig) {
+      // Se existir, atualiza o valor
+      const [updatedConfig] = await db
+        .update(appConfig)
+        .set({ 
+          value: config.value,
+          updatedAt: new Date(),
+          updatedBy: config.updatedBy
+        })
+        .where(eq(appConfig.id, existingConfig.id))
+        .returning();
+        
+      return updatedConfig;
+    } else {
+      // Se não existir, cria uma nova configuração
+      const [newConfig] = await db
+        .insert(appConfig)
+        .values(config)
+        .returning();
+        
+      return newConfig;
+    }
+  }
+
+  async updateAppConfig(id: number, value: string, updatedBy: number): Promise<AppConfig> {
+    const [config] = await db
+      .update(appConfig)
+      .set({ 
+        value, 
+        updatedAt: new Date(), 
+        updatedBy 
+      })
+      .where(eq(appConfig.id, id))
+      .returning();
+      
+    return config;
+  }
+
+  async deleteAppConfig(id: number): Promise<boolean> {
+    try {
+      await db
+        .delete(appConfig)
+        .where(eq(appConfig.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao excluir configuração:", error);
+      return false;
+    }
+  }
+
+  // Content management methods
+  async getContent(id: number): Promise<Content | undefined> {
+    const [content] = await db.select().from(content).where(eq(content.id, id));
+    return content || undefined;
+  }
+
+  async getContentBySlug(slug: string): Promise<Content | undefined> {
+    const [content] = await db.select().from(content).where(eq(content.slug, slug));
+    return content || undefined;
+  }
+
+  async getContentsByCategory(category: string): Promise<Content[]> {
+    return await db
+      .select()
+      .from(content)
+      .where(
+        and(
+          eq(content.category, category),
+          eq(content.isPublished, true)
+        )
+      )
+      .orderBy(content.title);
+  }
+
+  async getAllContents(includeUnpublished: boolean = false): Promise<Content[]> {
+    let query = db.select().from(content);
+    
+    if (!includeUnpublished) {
+      query = query.where(eq(content.isPublished, true));
+    }
+    
+    return await query.orderBy([content.category, content.title]);
+  }
+
+  async createContent(insertContent: InsertContent): Promise<Content> {
+    const [newContent] = await db
+      .insert(content)
+      .values(insertContent)
+      .returning();
+      
+    return newContent;
+  }
+
+  async updateContent(id: number, data: Partial<InsertContent>): Promise<Content> {
+    // Adiciona a data de atualização
+    const updateData = {
+      ...data,
+      updatedAt: new Date()
+    };
+    
+    const [updatedContent] = await db
+      .update(content)
+      .set(updateData)
+      .where(eq(content.id, id))
+      .returning();
+      
+    return updatedContent;
+  }
+
+  async deleteContent(id: number): Promise<boolean> {
+    try {
+      await db
+        .delete(content)
+        .where(eq(content.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao excluir conteúdo:", error);
+      return false;
+    }
+  }
+
+  // Media management methods
+  async getMedia(id: number): Promise<Media | undefined> {
+    const [mediaItem] = await db.select().from(media).where(eq(media.id, id));
+    return mediaItem || undefined;
+  }
+
+  async getMediaByCategory(category: string): Promise<Media[]> {
+    return await db
+      .select()
+      .from(media)
+      .where(eq(media.category, category))
+      .orderBy(desc(media.uploadedAt));
+  }
+
+  async getAllMedia(): Promise<Media[]> {
+    return await db
+      .select()
+      .from(media)
+      .orderBy(desc(media.uploadedAt));
+  }
+
+  async createMedia(insertMedia: InsertMedia): Promise<Media> {
+    const [newMedia] = await db
+      .insert(media)
+      .values(insertMedia)
+      .returning();
+      
+    return newMedia;
+  }
+
+  async deleteMedia(id: number): Promise<boolean> {
+    try {
+      await db
+        .delete(media)
+        .where(eq(media.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao excluir mídia:", error);
+      return false;
+    }
+  }
+
+  // Audit logging methods
+  async createAuditLog(insertLog: InsertAuditLog): Promise<AuditLog> {
+    const [log] = await db
+      .insert(auditLog)
+      .values(insertLog)
+      .returning();
+      
+    return log;
+  }
+
+  async getAuditLogs(options?: { 
+    userId?: number, 
+    action?: string, 
+    entity?: string, 
+    fromDate?: Date, 
+    toDate?: Date,
+    limit?: number
+  }): Promise<AuditLog[]> {
+    let query = db.select().from(auditLog);
+    
+    // Aplicar filtros se fornecidos
+    if (options) {
+      const conditions = [];
+      
+      if (options.userId) {
+        conditions.push(eq(auditLog.userId, options.userId));
+      }
+      
+      if (options.action) {
+        conditions.push(eq(auditLog.action, options.action));
+      }
+      
+      if (options.entity) {
+        conditions.push(eq(auditLog.entity, options.entity));
+      }
+      
+      if (options.fromDate) {
+        conditions.push(gte(auditLog.timestamp, options.fromDate));
+      }
+      
+      if (options.toDate) {
+        conditions.push(lte(auditLog.timestamp, options.toDate));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+      
+      if (options.limit) {
+        query = query.limit(options.limit);
+      }
+    }
+    
+    return await query.orderBy(desc(auditLog.timestamp));
   }
 }
 

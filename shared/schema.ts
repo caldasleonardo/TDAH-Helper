@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, date, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -89,6 +89,97 @@ export const userPremiumFeatures = pgTable("user_premium_features", {
   isActive: boolean("is_active").default(true),
 });
 
+// Admin users schema
+export const adminUsers = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull(),
+  role: text("role").notNull().default("editor"), // admin, editor
+  createdAt: timestamp("created_at").defaultNow(),
+  lastLogin: timestamp("last_login"),
+});
+
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({
+  id: true,
+  createdAt: true,
+  lastLogin: true,
+});
+
+// App configuration schema
+export const appConfig = pgTable("app_config", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: text("value").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // text, number, boolean, color, json
+  category: varchar("category", { length: 100 }).notNull(), // general, app, quiz, theme, etc.
+  description: text("description"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedBy: integer("updated_by").references(() => adminUsers.id),
+});
+
+export const insertAppConfigSchema = createInsertSchema(appConfig).omit({
+  id: true,
+  updatedAt: true,
+});
+
+// Content management schema
+export const content = pgTable("content", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  content: text("content").notNull(),
+  category: varchar("category", { length: 100 }).notNull(), // articles, faq, help, homepage, etc.
+  isPublished: boolean("is_published").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: integer("created_by").references(() => adminUsers.id),
+  updatedBy: integer("updated_by").references(() => adminUsers.id),
+});
+
+export const insertContentSchema = createInsertSchema(content).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Media library schema
+export const media = pgTable("media", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull(),
+  originalFilename: text("original_filename").notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  size: integer("size").notNull(),
+  url: text("url").notNull(),
+  alt: text("alt"),
+  category: varchar("category", { length: 100 }), // icons, backgrounds, user-uploads, etc.
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  uploadedBy: integer("uploaded_by").references(() => adminUsers.id),
+});
+
+export const insertMediaSchema = createInsertSchema(media).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+// Audit log schema
+export const auditLog = pgTable("audit_log", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => adminUsers.id),
+  action: varchar("action", { length: 100 }).notNull(), // login, update, create, delete, etc.
+  entity: varchar("entity", { length: 100 }).notNull(), // the table or model that was modified
+  entityId: integer("entity_id"), // the id of the modified record
+  details: json("details"), // additional details about the action
+  ip: varchar("ip", { length: 45 }),
+  userAgent: text("user_agent"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLog).omit({
+  id: true,
+  timestamp: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -102,3 +193,18 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 
 export type PremiumFeature = typeof premiumFeatures.$inferSelect;
+
+export type AdminUser = typeof adminUsers.$inferSelect;
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+
+export type AppConfig = typeof appConfig.$inferSelect;
+export type InsertAppConfig = z.infer<typeof insertAppConfigSchema>;
+
+export type Content = typeof content.$inferSelect;
+export type InsertContent = z.infer<typeof insertContentSchema>;
+
+export type Media = typeof media.$inferSelect;
+export type InsertMedia = z.infer<typeof insertMediaSchema>;
+
+export type AuditLog = typeof auditLog.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;

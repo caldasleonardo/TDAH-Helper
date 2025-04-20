@@ -5,7 +5,7 @@ import { useRoute, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChartPieIcon, UserIcon, BookIcon, CalendarCheckIcon, UsersIcon, ShareIcon, RotateCcwIcon, SaveIcon } from "lucide-react";
+import { ChartPieIcon, UserIcon, BookIcon, CalendarCheckIcon, UsersIcon, ShareIcon, RotateCcwIcon, SaveIcon, CheckCircle } from "lucide-react";
 import { interpretations } from "@/lib/quiz-data";
 import { motion } from "framer-motion";
 
@@ -94,9 +94,9 @@ export default function ResultsPage() {
     return (score / maxPossible) * 100;
   };
   
-  const inattentionPercent = calculatePercentage(result.inattentionScore || 0, 21); // Assuming 7 inattention questions * 3 (max score per question)
-  const hyperactivityPercent = calculatePercentage(result.hyperactivityScore || 0, 9); // Assuming 3 hyperactivity questions * 3
-  const impulsivityPercent = calculatePercentage(result.impulsivityScore || 0, 15); // Assuming 5 impulsivity questions * 3
+  const inattentionPercent = calculatePercentage(result.inattentionScore || 0, 27); // 9 inattention questions * 3 (max score per question)
+  const hyperactivityPercent = calculatePercentage(result.hyperactivityScore || 0, 9); // 3 hyperactivity questions * 3
+  const impulsivityPercent = calculatePercentage(result.impulsivityScore || 0, 15); // 5 impulsivity questions * 3
   
   return (
     <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900">

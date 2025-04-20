@@ -123,14 +123,45 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       });
       
       // Determine category based on score
-      // Simplified scoring: max possible score would be 3 * totalQuestions
+      // Calculando percentuais para cada tipo
+      const maxInattentionScore = 9 * 3; // 9 perguntas * 3 (pontuação máxima)
+      const maxHyperactivityScore = 3 * 3; // 3 perguntas * 3
+      const maxImpulsivityScore = 5 * 3; // 5 perguntas * 3
+      
+      const inattentionPercentage = (inattentionScore / maxInattentionScore) * 100;
+      const hyperactivityPercentage = (hyperactivityScore / maxHyperactivityScore) * 100;
+      const impulsivityPercentage = (impulsivityScore / maxImpulsivityScore) * 100;
+      
+      // Pontuação total
       const maxPossibleScore = 3 * totalQuestions;
       const scorePercentage = (totalScore / maxPossibleScore) * 100;
       
+      // Determinando categoria com base nos percentuais
       let category = "low";
-      if (scorePercentage >= 70) {
+      
+      // Se qualquer área tiver um percentual alto, a categoria será alta
+      if (inattentionPercentage >= 75 || hyperactivityPercentage >= 75 || impulsivityPercentage >= 75) {
         category = "high";
-      } else if (scorePercentage >= 40) {
+      } 
+      // Se pelo menos duas áreas tiverem percentual moderado, a categoria será alta
+      else if (
+        (inattentionPercentage >= 65 && hyperactivityPercentage >= 65) || 
+        (inattentionPercentage >= 65 && impulsivityPercentage >= 65) || 
+        (hyperactivityPercentage >= 65 && impulsivityPercentage >= 65)
+      ) {
+        category = "high";
+      }
+      // Se o percentual total for alto, a categoria será alta
+      else if (scorePercentage >= 65) {
+        category = "high";
+      }
+      // Categoria moderada
+      else if (
+        inattentionPercentage >= 50 || 
+        hyperactivityPercentage >= 50 || 
+        impulsivityPercentage >= 50 || 
+        scorePercentage >= 40
+      ) {
         category = "moderate";
       }
       

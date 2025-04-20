@@ -73,6 +73,16 @@ export const questions = [
     text: "Com que frequência você tem dificuldade em relaxar ou descansar?",
     type: "hyperactivity",
     weight: 1
+  },
+  {
+    text: "Você frequentemente toma decisões rápidas sem considerar as alternativas?",
+    type: "impulsivity",
+    weight: 1
+  },
+  {
+    text: "Você costuma perder a paciência facilmente em situações frustrantes?",
+    type: "impulsivity",
+    weight: 1
   }
 ];
 

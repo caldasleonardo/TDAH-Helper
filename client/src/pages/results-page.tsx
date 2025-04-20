@@ -241,7 +241,7 @@ export default function ResultsPage() {
                     <div>
                       <h3 className="font-semibold text-lg dark:text-white">Relatório Completo e Detalhado</h3>
                       <p className="text-neutral-600 dark:text-neutral-300 text-sm">
-                        Obtenha uma análise aprofundada dos seus resultados
+                        {result.premiumPaid ? 'Você já possui acesso ao relatório completo' : 'Obtenha uma análise aprofundada dos seus resultados'}
                       </p>
                     </div>
                   </div>
@@ -265,21 +265,35 @@ export default function ResultsPage() {
                     </li>
                   </ul>
                   
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-baseline">
-                      <span className="text-2xl font-bold text-purple-700 dark:text-purple-400">R$12,90</span>
-                      <span className="text-xs text-neutral-500 dark:text-neutral-400 ml-1">pagamento único</span>
+                  {result.premiumPaid ? (
+                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-md mb-3 flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mr-2 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-medium text-green-800 dark:text-green-300 text-sm">Relatório Adquirido</h4>
+                        <p className="text-green-600 dark:text-green-400 text-xs">
+                          Você já possui acesso completo a este relatório
+                        </p>
+                      </div>
                     </div>
-                    <Link href="/checkout">
-                      <Button className="bg-purple-600 hover:bg-purple-700">
-                        Adquirir agora
-                      </Button>
-                    </Link>
-                  </div>
-                  
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center">
-                    Relatório enviado para seu e-mail em até 24 horas
-                  </p>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-baseline">
+                          <span className="text-2xl font-bold text-purple-700 dark:text-purple-400">R$12,90</span>
+                          <span className="text-xs text-neutral-500 dark:text-neutral-400 ml-1">pagamento único</span>
+                        </div>
+                        <Link href={`/checkout/${resultId}`}>
+                          <Button className="bg-purple-600 hover:bg-purple-700">
+                            Adquirir agora
+                          </Button>
+                        </Link>
+                      </div>
+                      
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center">
+                        Relatório enviado para seu e-mail em até 24 horas
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* Action buttons */}

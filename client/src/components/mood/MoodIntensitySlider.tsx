@@ -46,8 +46,7 @@ export function MoodIntensitySlider({
       </div>
       
       <Slider
-        className={cn("py-2", bg)}
-        trackClassName={track}
+        className={cn("py-2", bg, track)}
         min={1}
         max={5}
         step={1}

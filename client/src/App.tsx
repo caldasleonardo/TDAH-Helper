@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./lib/theme-provider";
 import { AuthProvider } from "./hooks/use-auth";
 import { SubscriptionProvider } from "./hooks/use-subscription";
+import { MoodTrackingProvider } from "./hooks/use-mood-tracking";
 import { ProtectedRoute } from "./lib/protected-route";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import NotFound from "@/pages/not-found";
@@ -18,6 +19,7 @@ import ContentPage from "@/pages/content-page";
 import ProfilePage from "@/pages/profile-page";
 import CheckoutPage from "@/pages/checkout-page";
 import DetailedReportPage from "@/pages/detailed-report-page";
+import MoodTrackingPage from "@/pages/mood-tracking-page";
 
 // Importação das páginas
 import PremiumPage from "./pages/premium-page";
@@ -45,6 +47,7 @@ function Router() {
       <ProtectedRoute path="/premium-content" component={PremiumContentPage} />
       <ProtectedRoute path="/premium-content/:id" component={PremiumContentPage} />
       <ProtectedRoute path="/premium-tools/pomodoro" component={PomodoroTool} />
+      <ProtectedRoute path="/mood-tracking" component={MoodTrackingPage} />
       
       <Route component={NotFound} />
     </Switch>
@@ -71,13 +74,15 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <SubscriptionProvider>
-            <TooltipProvider>
-              <div style={contentStyle}>
-                <Toaster />
-                <Router />
-                {!shouldHideBottomNav && <BottomNav />}
-              </div>
-            </TooltipProvider>
+            <MoodTrackingProvider>
+              <TooltipProvider>
+                <div style={contentStyle}>
+                  <Toaster />
+                  <Router />
+                  {!shouldHideBottomNav && <BottomNav />}
+                </div>
+              </TooltipProvider>
+            </MoodTrackingProvider>
           </SubscriptionProvider>
         </AuthProvider>
       </ThemeProvider>

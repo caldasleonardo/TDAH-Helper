@@ -72,9 +72,9 @@ export function MoodTrackingProvider({ children }: { children: ReactNode }) {
 
   // Buscar estatísticas de humor
   const {
-    data: moodStats,
+    data: moodStats = null,
     isLoading: isLoadingStats,
-  } = useQuery<MoodStats>({
+  } = useQuery<MoodStats | null>({
     queryKey: ["/api/mood-tracking/stats", activePeriod],
     enabled: !!user,
   });

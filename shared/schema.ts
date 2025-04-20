@@ -9,12 +9,14 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email"),
   createdAt: timestamp("created_at").defaultNow(),
+  firebaseUid: text("firebase_uid"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   email: true,
+  firebaseUid: true,
 });
 
 // Quiz results schema

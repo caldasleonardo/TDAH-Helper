@@ -1,11 +1,21 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { Strategy as AppleStrategy } from "passport-apple";
+import { Express, Request } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import admin from "firebase-admin";
+
+// Initialize Firebase Admin SDK for token verification
+if (!admin.apps.length) {
+  admin.initializeApp({
+    projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  });
+}
 
 declare global {
   namespace Express {
@@ -119,5 +129,59 @@ export function setupAuth(app: Express) {
     // Return user without password
     const { password, ...userWithoutPassword } = req.user as SelectUser;
     res.json(userWithoutPassword);
+  });
+
+  // Social login endpoint
+  app.post("/api/login/social", async (req, res, next) => {
+    try {
+      const { idToken, provider, isNewUser, email, displayName } = req.body;
+      
+      if (!idToken) {
+        return res.status(400).json({ message: "Token não fornecido" });
+      }
+      
+      // Verify the Firebase ID token
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const firebaseUid = decodedToken.uid;
+      
+      // Check if user exists by Firebase UID or email
+      let user = await storage.getUserByFirebaseUid(firebaseUid);
+      
+      if (!user && email) {
+        // Try to find by email
+        user = await storage.getUserByEmail(email);
+      }
+      
+      if (!user) {
+        // Create new user
+        const username = displayName ? 
+          displayName.toLowerCase().replace(/\s+/g, '.') :
+          `user_${Date.now()}`;
+
+        // Generate random password for the user (they'll login via social)
+        const password = randomBytes(16).toString('hex');
+        
+        user = await storage.createUser({
+          username,
+          email: email || `${username}@example.com`,
+          password: await hashPassword(password),
+          firebaseUid
+        });
+      } else if (!user.firebaseUid) {
+        // Update existing user with Firebase UID
+        user = await storage.updateUserFirebaseUid(user.id, firebaseUid);
+      }
+      
+      // Log in the user
+      req.login(user, (err) => {
+        if (err) return next(err);
+        // Return user without password
+        const { password, ...userWithoutPassword } = user;
+        res.status(201).json(userWithoutPassword);
+      });
+    } catch (error: any) {
+      console.error("Social login error:", error);
+      res.status(401).json({ message: `Erro na autenticação social: ${error.message}` });
+    }
   });
 }

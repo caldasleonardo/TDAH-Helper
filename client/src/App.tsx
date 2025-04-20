@@ -32,6 +32,7 @@ function Router() {
       <ProtectedRoute path="/results/:id" component={ResultsPage} />
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/content" component={ContentPage} />
+      <ProtectedRoute path="/content/:id" component={ContentPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/checkout/:quizResultId" component={CheckoutPage} />
       <ProtectedRoute path="/checkout/confirm/:quizResultId" component={CheckoutPage} />

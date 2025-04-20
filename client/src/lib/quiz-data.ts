@@ -83,6 +83,21 @@ export const questions = [
     text: "Você costuma perder a paciência facilmente em situações frustrantes?",
     type: "impulsivity",
     weight: 1
+  },
+  {
+    text: "Você tem dificuldade em manter a sequência de pensamentos durante conversas?",
+    type: "inattention",
+    weight: 1
+  },
+  {
+    text: "Com que frequência você se sente como se estivesse 'ligado na tomada' ou tivesse que estar sempre em movimento?",
+    type: "hyperactivity",
+    weight: 1
+  },
+  {
+    text: "Você costuma fazer compras por impulso ou tomar decisões financeiras sem planejamento adequado?",
+    type: "impulsivity",
+    weight: 1
   }
 ];
 

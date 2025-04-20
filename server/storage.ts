@@ -20,6 +20,7 @@ export interface IStorage {
   saveQuizResult(result: InsertQuizResult): Promise<QuizResult>;
   getUserQuizResults(userId: number): Promise<QuizResult[]>;
   getQuizResultById(id: number): Promise<QuizResult | undefined>;
+  updateQuizResultPayment(id: number, paymentIntentId: string, paid: boolean): Promise<QuizResult>;
   
   // Session store
   sessionStore: any; // Usando "any" para evitar erros de tipo com session.SessionStore
@@ -115,6 +116,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(quizResults.id, id));
     
     return result || undefined;
+  }
+  
+  async updateQuizResultPayment(id: number, paymentIntentId: string, paid: boolean): Promise<QuizResult> {
+    const [updatedResult] = await db
+      .update(quizResults)
+      .set({ 
+        premiumPaid: paid, 
+        paymentIntentId 
+      })
+      .where(eq(quizResults.id, id))
+      .returning();
+      
+    return updatedResult;
   }
 }
 

@@ -163,6 +163,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Dados de pagamento incompletos" });
       }
       
+      // Verificar se o resultado do quiz existe e pertence ao usuário
+      const quizResult = await storage.getQuizResultById(parseInt(quizResultId));
+      
+      if (!quizResult) {
+        return res.status(404).json({ message: "Resultado do quiz não encontrado" });
+      }
+      
+      if (quizResult.userId !== req.user?.id) {
+        return res.status(403).json({ message: "Não autorizado a acessar este resultado" });
+      }
+      
       // Verificar se o pagamento foi bem-sucedido no Stripe
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       
@@ -170,10 +181,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Pagamento não foi concluído com sucesso" });
       }
       
-      // Aqui você pode atualizar seu banco de dados para marcar o relatório como pago
-      // Por exemplo, adicionar um campo 'premiumPaid: true' no registro do quiz result
+      // Atualizar o registro para marcar o relatório como pago
+      const updatedResult = await storage.updateQuizResultPayment(
+        parseInt(quizResultId),
+        paymentIntentId,
+        true
+      );
       
-      res.json({ success: true, message: "Pagamento processado com sucesso" });
+      res.json({ 
+        success: true, 
+        message: "Pagamento processado com sucesso",
+        result: updatedResult
+      });
     } catch (error: any) {
       console.error("Erro ao processar confirmação de pagamento:", error);
       res.status(500).json({ 

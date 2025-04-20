@@ -1133,6 +1133,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API para rastreamento de humor
+  app.post("/api/mood-tracking", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+
+      const userId = req.user.id;
+      const moodData = {
+        ...req.body,
+        userId,
+        recordedAt: req.body.recordedAt ? new Date(req.body.recordedAt) : new Date()
+      };
+
+      const result = await storage.saveMoodTracking(moodData);
+      res.status(201).json(result);
+    } catch (error: any) {
+      console.error("Erro ao salvar rastreamento de humor:", error);
+      res.status(500).json({ 
+        message: "Erro ao salvar registro de humor", 
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/mood-tracking", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+
+      const userId = req.user.id;
+      const { startDate, endDate, limit } = req.query;
+      
+      const options: any = {};
+      
+      if (startDate) {
+        options.startDate = new Date(startDate as string);
+      }
+      
+      if (endDate) {
+        options.endDate = new Date(endDate as string);
+      }
+      
+      if (limit) {
+        options.limit = parseInt(limit as string);
+      }
+      
+      const records = await storage.getUserMoodTrackings(userId, options);
+      res.json(records);
+    } catch (error: any) {
+      console.error("Erro ao buscar registros de humor:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar histórico de humor", 
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/mood-tracking/stats/:period", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+
+      const userId = req.user.id;
+      const period = req.params.period as 'day' | 'week' | 'month' | 'year';
+      
+      // Validar período
+      if (!['day', 'week', 'month', 'year'].includes(period)) {
+        return res.status(400).json({ 
+          message: "Período inválido. Use: day, week, month ou year" 
+        });
+      }
+      
+      const stats = await storage.getMoodTrackingStats(userId, period);
+      res.json(stats);
+    } catch (error: any) {
+      console.error("Erro ao buscar estatísticas de humor:", error);
+      res.status(500).json({ 
+        message: "Erro ao gerar estatísticas de humor", 
+        error: error.message 
+      });
+    }
+  });
+
+  app.delete("/api/mood-tracking/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+
+      const moodId = parseInt(req.params.id);
+      const userId = req.user.id;
+      
+      // Verificar se o registro pertence ao usuário
+      const record = await storage.getMoodTrackingById(moodId);
+      
+      if (!record) {
+        return res.status(404).json({ message: "Registro não encontrado" });
+      }
+      
+      if (record.userId !== userId) {
+        return res.status(403).json({ message: "Você não tem permissão para excluir este registro" });
+      }
+      
+      const result = await storage.deleteMoodTracking(moodId);
+      
+      if (result) {
+        res.json({ success: true, message: "Registro excluído com sucesso" });
+      } else {
+        res.status(500).json({ message: "Erro ao excluir registro" });
+      }
+    } catch (error: any) {
+      console.error("Erro ao excluir registro de humor:", error);
+      res.status(500).json({ 
+        message: "Erro ao excluir registro de humor", 
+        error: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

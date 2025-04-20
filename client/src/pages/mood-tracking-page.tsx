@@ -184,7 +184,7 @@ function MoodTrackingPageContent() {
                   <p>Comece registrando como você está se sentindo hoje!</p>
                 </div>
               ) : (
-                <ScrollArea className="h-[400px] pr-4">
+                <ScrollArea className="h-[400px] pr-4 overflow-auto">
                   <div className="space-y-4">
                     {moods.map((mood) => (
                       <div 

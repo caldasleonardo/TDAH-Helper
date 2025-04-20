@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,16 @@ import {
   Book, 
   Timer,
   Calendar as CalendarIcon,
-  UserIcon
+  UserIcon,
+  FileText,
+  Brain,
+  LineChart,
+  History,
+  ScrollText,
+  Sparkles,
+  Trophy,
+  Users,
+  VideoIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -59,15 +69,6 @@ export default function PremiumPage() {
     <div className="container mx-auto p-4 mb-20">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mr-2" 
-            onClick={() => setLocation("/")}
-          >
-            <ArrowRight className="h-4 w-4 mr-1 rotate-180" />
-            Voltar
-          </Button>
           <h1 className="text-xl font-bold">Premium</h1>
         </div>
         <div className="flex items-center">
@@ -137,44 +138,82 @@ export default function PremiumPage() {
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-6">Principais Recursos</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {premiumFeatures.map((feature) => (
-                <Card key={feature.id} className={`h-full ${isPremium ? 'border-primary/30 hover:shadow-md transition-shadow' : ''}`}>
-                  <CardHeader className="p-3">
-                    <CardTitle className="text-sm flex items-center">
-                      {feature.name}
-                      {isPremium && <CheckCircle className="h-3 w-3 text-primary ml-1" />}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-3 pt-0">
-                    <CardDescription className="text-xs">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                  <CardFooter className="p-3 pt-0 flex justify-between items-center">
-                    {isPremium ? (
-                      <>
-                        <Badge className="bg-primary/10 text-primary border-primary/20 text-xs py-0">
-                          Disponível
+              {premiumFeatures.map((feature) => {
+                // Escolha o ícone com base no ID do recurso
+                let FeatureIcon;
+                switch(feature.id) {
+                  case 1:
+                    FeatureIcon = FileText;
+                    break;
+                  case 2:
+                    FeatureIcon = Brain;
+                    break;
+                  case 3:
+                    FeatureIcon = LineChart;
+                    break;
+                  case 4:
+                    FeatureIcon = History;
+                    break;
+                  case 5:
+                    FeatureIcon = ScrollText;
+                    break;
+                  case 6:
+                    FeatureIcon = VideoIcon;
+                    break;
+                  case 7:
+                    FeatureIcon = Trophy;
+                    break;
+                  case 8:
+                    FeatureIcon = Users;
+                    break;
+                  default:
+                    FeatureIcon = Sparkles;
+                }
+                
+                return (
+                  <Card key={feature.id} className={`h-full ${isPremium ? 'border-primary/30 hover:shadow-md transition-shadow' : ''}`}>
+                    <CardHeader className="p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="bg-primary/10 p-2 rounded-lg">
+                          <FeatureIcon className="h-5 w-5 text-primary" />
+                        </div>
+                        {isPremium && <CheckCircle className="h-4 w-4 text-primary" />}
+                      </div>
+                      <CardTitle className="text-sm">
+                        {feature.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-0">
+                      <CardDescription className="text-xs">
+                        {feature.description}
+                      </CardDescription>
+                    </CardContent>
+                    <CardFooter className="p-3 pt-0 flex justify-between items-center">
+                      {isPremium ? (
+                        <>
+                          <Badge className="bg-primary/10 text-primary border-primary/20 text-xs py-0">
+                            Disponível
+                          </Badge>
+                          {feature.id === 1 && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-primary h-7 text-xs"
+                              onClick={() => setLocation("/premium-content")}
+                            >
+                              Acessar <ArrowRight className="ml-1 h-3 w-3" />
+                            </Button>
+                          )}
+                        </>
+                      ) : (
+                        <Badge variant="outline" className="text-xs py-0">
+                          Premium
                         </Badge>
-                        {feature.id === 1 && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-primary h-7 text-xs"
-                            onClick={() => setLocation("/premium-content")}
-                          >
-                            Acessar <ArrowRight className="ml-1 h-3 w-3" />
-                          </Button>
-                        )}
-                      </>
-                    ) : (
-                      <Badge variant="outline" className="text-xs py-0">
-                        Premium
-                      </Badge>
-                    )}
-                  </CardFooter>
-                </Card>
-              ))}
+                      )}
+                    </CardFooter>
+                  </Card>
+                );
+              })}
             </div>
           </div>
           
@@ -319,6 +358,8 @@ export default function PremiumPage() {
           )}
         </TabsContent>
       </Tabs>
+      
+      <BottomNav />
     </div>
   );
 }

@@ -201,6 +201,204 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Rotas de assinatura premium
+  
+  // Criar uma assinatura - endpoint que inicia o fluxo de assinatura para funcionalidades premium
+  app.post("/api/subscriptions", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+      
+      const { planType = 'monthly' } = req.body;
+      
+      // Obter o usuário
+      const user = req.user;
+      
+      // Verificar se o usuário já tem uma assinatura ativa
+      const existingSubscription = await storage.getActiveSubscription(user.id);
+      
+      if (existingSubscription) {
+        return res.status(400).json({
+          message: "Usuário já possui uma assinatura ativa",
+          subscription: existingSubscription
+        });
+      }
+      
+      let customerId = user.stripeCustomerId;
+      
+      // Criar ou recuperar customer no Stripe
+      if (!customerId) {
+        // Cria um novo cliente no Stripe
+        const customer = await stripe.customers.create({
+          email: user.email || undefined,
+          name: user.username,
+          metadata: {
+            userId: user.id.toString()
+          }
+        });
+        
+        customerId = customer.id;
+        
+        // Atualizar o ID do cliente Stripe no usuário
+        await storage.updateUserStripeInfo(user.id, { stripeCustomerId: customerId });
+      }
+      
+      // Definir produtos com base no tipo de plano
+      const priceId = planType === 'yearly' 
+        ? 'price_yearly_subscription'  // ID do preço para assinatura anual
+        : 'price_monthly_subscription'; // ID do preço para assinatura mensal
+      
+      // Criar uma assinatura no Stripe
+      const subscription = await stripe.subscriptions.create({
+        customer: customerId,
+        items: [{
+          price: priceId,
+        }],
+        payment_behavior: 'default_incomplete',
+        expand: ['latest_invoice.payment_intent'],
+      });
+      
+      // Data de início e fim do período atual
+      const currentPeriodStart = new Date(subscription.current_period_start * 1000);
+      const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+      
+      // Salvar a assinatura no banco de dados
+      const savedSubscription = await storage.createSubscription({
+        userId: user.id,
+        stripeSubscriptionId: subscription.id,
+        status: subscription.status,
+        planType,
+        currentPeriodStart,
+        currentPeriodEnd
+      });
+      
+      // Responder com os detalhes da assinatura e o clientSecret para pagamento
+      res.json({
+        subscription: savedSubscription,
+        clientSecret: subscription.latest_invoice.payment_intent.client_secret
+      });
+      
+    } catch (error: any) {
+      console.error("Erro ao criar assinatura:", error);
+      res.status(500).json({
+        message: "Erro ao processar assinatura",
+        error: error.message
+      });
+    }
+  });
+  
+  // Obter a assinatura atual do usuário
+  app.get("/api/subscriptions/current", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+      
+      const subscription = await storage.getActiveSubscription(req.user.id);
+      
+      if (!subscription) {
+        return res.status(404).json({ message: "Nenhuma assinatura ativa encontrada" });
+      }
+      
+      res.json(subscription);
+      
+    } catch (error: any) {
+      console.error("Erro ao buscar assinatura:", error);
+      res.status(500).json({
+        message: "Erro ao buscar dados da assinatura",
+        error: error.message
+      });
+    }
+  });
+  
+  // Cancelar assinatura
+  app.post("/api/subscriptions/cancel", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+      
+      const { subscriptionId } = req.body;
+      
+      if (!subscriptionId) {
+        return res.status(400).json({ message: "ID da assinatura é obrigatório" });
+      }
+      
+      // Buscar assinatura no banco de dados
+      const subscription = await storage.getUserSubscription(req.user.id);
+      
+      if (!subscription || subscription.id !== parseInt(subscriptionId)) {
+        return res.status(403).json({ message: "Não autorizado a cancelar esta assinatura" });
+      }
+      
+      // Cancelar assinatura no Stripe
+      await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+      
+      // Atualizar status da assinatura no banco de dados
+      const updatedSubscription = await storage.updateSubscriptionStatus(
+        subscription.id,
+        "canceled",
+        new Date()
+      );
+      
+      res.json({
+        success: true,
+        message: "Assinatura cancelada com sucesso",
+        subscription: updatedSubscription
+      });
+      
+    } catch (error: any) {
+      console.error("Erro ao cancelar assinatura:", error);
+      res.status(500).json({
+        message: "Erro ao cancelar assinatura",
+        error: error.message
+      });
+    }
+  });
+  
+  // Rotas para gerenciar funcionalidades premium
+  
+  // Obter todas as funcionalidades premium disponíveis
+  app.get("/api/premium-features", async (req, res) => {
+    try {
+      const features = await storage.getActivePremiumFeatures();
+      res.json(features);
+    } catch (error: any) {
+      console.error("Erro ao buscar funcionalidades premium:", error);
+      res.status(500).json({
+        message: "Erro ao buscar funcionalidades premium",
+        error: error.message
+      });
+    }
+  });
+  
+  // Obter as funcionalidades premium do usuário
+  app.get("/api/user/premium-features", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+      
+      const features = await storage.getUserPremiumFeatures(req.user.id);
+      
+      // Verificar se o usuário tem assinatura ativa
+      const subscription = await storage.getActiveSubscription(req.user.id);
+      
+      res.json({
+        features,
+        hasActiveSubscription: !!subscription
+      });
+      
+    } catch (error: any) {
+      console.error("Erro ao buscar funcionalidades premium do usuário:", error);
+      res.status(500).json({
+        message: "Erro ao buscar funcionalidades premium do usuário",
+        error: error.message
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

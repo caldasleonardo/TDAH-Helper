@@ -9,7 +9,7 @@ import connectPg from "connect-pg-simple";
 import session from "express-session";
 import { db } from "./db";
 import { pool } from "./db";
-import { eq, desc, and, lte, gte, or } from "drizzle-orm";
+import { eq, desc, and, lte, gte, or, inArray } from "drizzle-orm";
 
 const PostgresSessionStore = connectPg(session);
 
@@ -270,18 +270,26 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Obter detalhes das features premium ativas
-    const features = await db
-      .select()
-      .from(premiumFeatures)
-      .where(
-        and(
-          eq(premiumFeatures.isActive, true),
-          // Usar o operador IN para múltiplos IDs
-          inArray(premiumFeatures.id, validFeatureIds)
-        )
-      );
+    // Usar Promise.all para fazer várias consultas se necessário
+    const features = await Promise.all(
+      validFeatureIds.map(async (featureId) => {
+        const [feature] = await db
+          .select()
+          .from(premiumFeatures)
+          .where(
+            and(
+              eq(premiumFeatures.id, featureId),
+              eq(premiumFeatures.isActive, true)
+            )
+          );
+        return feature;
+      })
+    );
     
-    return features;
+    // Filtrar qualquer resultado undefined (caso alguma feature tenha sido desativada)
+    const validFeatures = features.filter(Boolean);
+    
+    return validFeatures;
   }
   
   async addUserPremiumFeature(userId: number, featureId: number, expiresAt?: Date): Promise<boolean> {

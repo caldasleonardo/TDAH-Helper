@@ -23,7 +23,12 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY, {
 });
 
 // Componente de formulário de pagamento Stripe
-function CheckoutForm({ quizResultId, amount, clientSecret }: { quizResultId: string, amount: number, clientSecret: string }) {
+function CheckoutForm({ quizResultId, amount, clientSecret, userData }: { 
+  quizResultId: string, 
+  amount: number, 
+  clientSecret: string,
+  userData?: { username?: string; email?: string }
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -114,22 +119,11 @@ function CheckoutForm({ quizResultId, amount, clientSecret }: { quizResultId: st
             </svg>
             <span className="text-sm">Agora com suporte a <strong>Google Pay</strong>!</span>
           </div>
-          <PaymentElement 
-            options={{
-              wallets: {
-                googlePay: 'always',
-                applePay: 'auto',
-              },
-              fields: {
-                billingDetails: {
-                  name: 'auto',
-                  email: 'auto',
-                }
-              },
+          <PaymentElement options={{
               defaultValues: {
                 billingDetails: {
-                  name: user?.username || '',
-                  email: user?.email || ''
+                  name: userData?.username || '',
+                  email: userData?.email || ''
                 }
               }
             }}
@@ -409,6 +403,10 @@ export default function CheckoutPage() {
                     quizResultId={quizResultId!} 
                     amount={amount}
                     clientSecret={clientSecret}
+                    userData={user ? {
+                      username: user.username,
+                      email: user.email || undefined
+                    } : undefined}
                   />
                 </Elements>
               ) : null}

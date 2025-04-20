@@ -23,8 +23,17 @@ export function BottomNav() {
     </div>
   );
   
+  // Definir o tipo para os itens de navegação
+  type NavItem = {
+    href: string;
+    label: string;
+    icon: React.ComponentType<any> | (() => JSX.Element);
+    active: boolean;
+    isComponent?: boolean;
+  };
+
   // Itens de navegação principal
-  const mainNavItems = [
+  const mainNavItems: NavItem[] = [
     {
       href: "/",
       label: "Início",
@@ -59,7 +68,7 @@ export function BottomNav() {
   ];
   
   // Itens de navegação premium (apenas para assinantes)
-  const premiumNavItems = isPremium ? [
+  const premiumNavItems: NavItem[] = isPremium ? [
     {
       href: "/premium-content",
       label: "Premium",
@@ -99,7 +108,7 @@ export function BottomNav() {
           {displayItems.map((item) => (
             <Link key={item.href} href={item.href} 
               className="flex flex-col items-center">
-                {item.isComponent ? (
+                {('isComponent' in item && item.isComponent) ? (
                   <item.icon />
                 ) : (
                   <item.icon 

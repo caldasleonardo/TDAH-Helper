@@ -13,9 +13,9 @@ import {
   Calendar, 
   ArrowRight, 
   Loader2, 
-  BookIcon, 
-  TimerIcon,
-  CalendarIcon
+  Book, 
+  Timer,
+  Calendar as CalendarIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -162,7 +162,7 @@ export default function PremiumPage() {
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
-                      <BookIcon className="h-8 w-8 text-primary p-1 bg-primary/10 rounded-lg" />
+                      <Book className="h-8 w-8 text-primary p-1 bg-primary/10 rounded-lg" />
                       <Badge className="bg-primary/10 text-primary border-primary/20">
                         Premium
                       </Badge>

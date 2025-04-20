@@ -246,10 +246,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Definir produtos com base no tipo de plano
-      // Esses IDs são fictícios por enquanto. Em produção, devem ser substituídos por IDs reais do Stripe
+      if (!process.env.STRIPE_PRICE_MONTHLY || !process.env.STRIPE_PRICE_YEARLY) {
+        throw new Error('Variáveis de ambiente STRIPE_PRICE_MONTHLY e STRIPE_PRICE_YEARLY não definidas');
+      }
+      
       const priceId = planType === 'yearly' 
-        ? 'price_1OvXXXXXXXXXXXXXXXXXXXXX'  // ID do preço para assinatura anual
-        : 'price_1OvXXXXXXXXXXXXXXXXXXXXX'; // ID do preço para assinatura mensal
+        ? process.env.STRIPE_PRICE_YEARLY  // ID do preço para assinatura anual
+        : process.env.STRIPE_PRICE_MONTHLY; // ID do preço para assinatura mensal
       
       // Criar uma assinatura no Stripe
       const subscription = await stripe.subscriptions.create({
@@ -262,8 +265,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Data de início e fim do período atual
-      const currentPeriodStart = new Date(subscription.current_period_start * 1000);
-      const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+      // Acessar as propriedades com verificação de tipo
+      const currentPeriodStart = new Date((subscription as any).current_period_start * 1000);
+      const currentPeriodEnd = new Date((subscription as any).current_period_end * 1000);
       
       // Salvar a assinatura no banco de dados
       const savedSubscription = await storage.createSubscription({
@@ -276,9 +280,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Responder com os detalhes da assinatura e o clientSecret para pagamento
+      // Acessar payment_intent com verificação de tipo
+      if (!subscription.latest_invoice || typeof subscription.latest_invoice === 'string') {
+        throw new Error('Erro ao obter dados de faturamento da assinatura');
+      }
+      
+      const paymentIntent = (subscription.latest_invoice as any).payment_intent;
+      if (!paymentIntent || !paymentIntent.client_secret) {
+        throw new Error('Erro ao obter dados de pagamento da assinatura');
+      }
+      
       res.json({
         subscription: savedSubscription,
-        clientSecret: subscription.latest_invoice.payment_intent.client_secret
+        clientSecret: paymentIntent.client_secret
       });
       
     } catch (error: any) {

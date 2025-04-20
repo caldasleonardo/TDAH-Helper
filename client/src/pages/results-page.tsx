@@ -232,6 +232,56 @@ export default function ResultsPage() {
                   </ul>
                 </div>
                 
+                {/* Relatório Premium */}
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 rounded-lg p-5 mb-6 border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-start mb-3">
+                    <div className="h-10 w-10 flex items-center justify-center bg-purple-600 dark:bg-purple-600 rounded-full mr-3">
+                      <ChartPieIcon className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg dark:text-white">Relatório Completo e Detalhado</h3>
+                      <p className="text-neutral-600 dark:text-neutral-300 text-sm">
+                        Obtenha uma análise aprofundada dos seus resultados
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <ul className="space-y-2 mb-4">
+                    <li className="flex items-start">
+                      <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5">✓</div>
+                      <span className="text-sm text-neutral-700 dark:text-neutral-300">Questionário estendido com 30 perguntas específicas</span>
+                    </li>
+                    <li className="flex items-start">
+                      <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5">✓</div>
+                      <span className="text-sm text-neutral-700 dark:text-neutral-300">Análise detalhada por sintoma e comportamento</span>
+                    </li>
+                    <li className="flex items-start">
+                      <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5">✓</div>
+                      <span className="text-sm text-neutral-700 dark:text-neutral-300">Recomendações personalizadas para cada área</span>
+                    </li>
+                    <li className="flex items-start">
+                      <div className="text-purple-600 dark:text-purple-400 mr-2 mt-0.5">✓</div>
+                      <span className="text-sm text-neutral-700 dark:text-neutral-300">Documento em PDF com gráficos e estatísticas</span>
+                    </li>
+                  </ul>
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-baseline">
+                      <span className="text-2xl font-bold text-purple-700 dark:text-purple-400">R$12,90</span>
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400 ml-1">pagamento único</span>
+                    </div>
+                    <Link href="/checkout">
+                      <Button className="bg-purple-600 hover:bg-purple-700">
+                        Adquirir agora
+                      </Button>
+                    </Link>
+                  </div>
+                  
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center">
+                    Relatório enviado para seu e-mail em até 24 horas
+                  </p>
+                </div>
+
                 {/* Action buttons */}
                 <div className="space-y-3">
                   <Button className="w-full py-6 text-base">

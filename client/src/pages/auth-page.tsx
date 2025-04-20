@@ -13,7 +13,11 @@ import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
 import { BrainIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
+import { FaApple } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { signInWithGoogle, signInWithApple } from "@/lib/auth-service";
+import { useToast } from "@/hooks/use-toast";
 
 // Extended schema with required email and password confirmation
 const registerSchema = insertUserSchema.extend({
@@ -36,8 +40,10 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [socialLoginPending, setSocialLoginPending] = useState(false);
   
   // Register form
   const registerForm = useForm<RegisterFormValues>({
@@ -68,6 +74,40 @@ export default function AuthPage() {
   // Handle login submit
   const onLoginSubmit = (data: LoginFormValues) => {
     loginMutation.mutate(data);
+  };
+  
+  // Handle Google login
+  const handleGoogleLogin = async () => {
+    try {
+      setSocialLoginPending(true);
+      await signInWithGoogle();
+      // No need to do anything after successful login, the component will redirect
+    } catch (error: any) {
+      toast({
+        title: "Erro no login com Google",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSocialLoginPending(false);
+    }
+  };
+  
+  // Handle Apple login
+  const handleAppleLogin = async () => {
+    try {
+      setSocialLoginPending(true);
+      await signInWithApple();
+      // No need to do anything after successful login, the component will redirect
+    } catch (error: any) {
+      toast({
+        title: "Erro no login com Apple",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSocialLoginPending(false);
+    }
   };
   
   // Redirect if user is already logged in
@@ -161,12 +201,24 @@ export default function AuthPage() {
                       </div>
                       
                       <div className="grid grid-cols-2 gap-3 mt-4">
-                        <Button variant="outline" className="flex justify-center items-center py-5">
-                          <i className="fab fa-google mr-2"></i>
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          className="flex justify-center items-center py-5"
+                          onClick={handleGoogleLogin}
+                          disabled={socialLoginPending || loginMutation.isPending}
+                        >
+                          <FcGoogle className="mr-2 h-5 w-5" />
                           <span>Google</span>
                         </Button>
-                        <Button variant="outline" className="flex justify-center items-center py-5">
-                          <i className="fab fa-apple mr-2"></i>
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          className="flex justify-center items-center py-5"
+                          onClick={handleAppleLogin}
+                          disabled={socialLoginPending || loginMutation.isPending}
+                        >
+                          <FaApple className="mr-2 h-5 w-5" />
                           <span>Apple</span>
                         </Button>
                       </div>
@@ -267,6 +319,35 @@ export default function AuthPage() {
                       <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center mt-4">
                         Ao cadastrar, você concorda com nossos <a href="#" className="text-primary hover:underline">Termos de Uso</a> e <a href="#" className="text-primary hover:underline">Política de Privacidade</a>.
                       </p>
+
+                      <div className="relative flex items-center justify-center mt-6">
+                        <hr className="flex-grow border-neutral-200 dark:border-neutral-700" />
+                        <span className="mx-4 text-sm text-neutral-500 dark:text-neutral-400">ou cadastre com</span>
+                        <hr className="flex-grow border-neutral-200 dark:border-neutral-700" />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 mt-4">
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          className="flex justify-center items-center py-5"
+                          onClick={handleGoogleLogin}
+                          disabled={socialLoginPending || registerMutation.isPending}
+                        >
+                          <FcGoogle className="mr-2 h-5 w-5" />
+                          <span>Google</span>
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          className="flex justify-center items-center py-5"
+                          onClick={handleAppleLogin}
+                          disabled={socialLoginPending || registerMutation.isPending}
+                        >
+                          <FaApple className="mr-2 h-5 w-5" />
+                          <span>Apple</span>
+                        </Button>
+                      </div>
                     </form>
                   </TabsContent>
                 </Tabs>

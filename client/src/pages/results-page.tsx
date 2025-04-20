@@ -296,24 +296,32 @@ export default function ResultsPage() {
                   </div>
                   
                   {result.premiumPaid ? (
-                    <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-md mb-3 flex items-center">
-                      <motion.div
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 1, repeat: Infinity }}
-                      >
-                        <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 mr-3 flex-shrink-0" />
-                      </motion.div>
-                      <div>
-                        <h4 className="font-medium text-green-800 dark:text-green-300 text-base">Relatório Adquirido</h4>
-                        <p className="text-green-700 dark:text-green-500 text-sm">
-                          Você já possui acesso completo a este relatório
-                        </p>
+                    <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-md mb-3">
+                      <div className="flex items-center mb-3">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 1, repeat: Infinity }}
+                        >
+                          <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 mr-3 flex-shrink-0" />
+                        </motion.div>
+                        <div>
+                          <h4 className="font-medium text-green-800 dark:text-green-300 text-base">Relatório Adquirido</h4>
+                          <p className="text-green-700 dark:text-green-500 text-sm">
+                            Você já possui acesso completo a este relatório
+                          </p>
+                        </div>
                       </div>
+                      <Link href={`/detailed-report/${resultId}`}>
+                        <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                          Acessar Relatório Detalhado
+                          <ArrowRightCircleIcon className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center justify-between mb-5 bg-white/70 dark:bg-black/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800/40">
-                        <div>
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-5 bg-white/70 dark:bg-black/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800/40">
+                        <div className="mb-4 md:mb-0">
                           <div className="flex items-baseline">
                             <motion.span 
                               animate={{ scale: [1, 1.1, 1] }}
@@ -330,14 +338,15 @@ export default function ResultsPage() {
                             Sem mensalidades ou taxas adicionais
                           </p>
                         </div>
-                        <Link href={`/checkout/${resultId}`}>
+                        <Link href={`/checkout/${resultId}`} className="w-full md:w-auto">
                           <motion.div
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            className="w-full md:w-auto"
                           >
-                            <Button className="bg-purple-600 hover:bg-purple-700 text-base px-5 py-6 space-x-2 font-bold shadow-md">
-                              <span>Adquirir agora</span>
-                              <ArrowRightCircleIcon className="h-5 w-5" />
+                            <Button className="bg-purple-600 hover:bg-purple-700 text-base py-4 font-bold shadow-md w-full md:px-5 md:py-6">
+                              <span className="mr-2">Adquirir agora</span>
+                              <ArrowRightCircleIcon className="h-5 w-5 inline-flex" />
                             </Button>
                           </motion.div>
                         </Link>

@@ -17,6 +17,7 @@ import AuthPage from "@/pages/auth-page";
 import ContentPage from "@/pages/content-page";
 import ProfilePage from "@/pages/profile-page";
 import CheckoutPage from "@/pages/checkout-page";
+import DetailedReportPage from "@/pages/detailed-report-page";
 
 // Importação das páginas
 import PremiumPage from "./pages/premium-page";
@@ -36,6 +37,7 @@ function Router() {
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/checkout/:quizResultId" component={CheckoutPage} />
       <ProtectedRoute path="/checkout/confirm/:quizResultId" component={CheckoutPage} />
+      <ProtectedRoute path="/detailed-report/:id" component={DetailedReportPage} />
       <ProtectedRoute path="/premium" component={PremiumPage} />
       <ProtectedRoute path="/subscribe" component={SubscribePage} />
       

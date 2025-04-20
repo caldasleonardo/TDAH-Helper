@@ -208,3 +208,23 @@ export type InsertMedia = z.infer<typeof insertMediaSchema>;
 
 export type AuditLog = typeof auditLog.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+
+// Tabela para rastreamento de humor
+export const moodTracking = pgTable("mood_tracking", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  mood: varchar("mood", { length: 50 }).notNull(), // emoji ou nome do humor
+  intensity: integer("intensity").notNull().default(3), // escala de 1-5
+  notes: text("notes"),
+  tags: text("tags").array(),
+  recordedAt: timestamp("recorded_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertMoodTrackingSchema = createInsertSchema(moodTracking).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type MoodTracking = typeof moodTracking.$inferSelect;
+export type InsertMoodTracking = z.infer<typeof insertMoodTrackingSchema>;

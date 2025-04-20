@@ -8,7 +8,8 @@ import {
   appConfig, type AppConfig, type InsertAppConfig,
   content, type Content, type InsertContent,
   media, type Media, type InsertMedia,
-  auditLog, type AuditLog, type InsertAuditLog
+  auditLog, type AuditLog, type InsertAuditLog,
+  moodTracking, type MoodTracking, type InsertMoodTracking
 } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
@@ -76,6 +77,17 @@ export interface IStorage {
   getAllMedia(): Promise<Media[]>;
   createMedia(media: InsertMedia): Promise<Media>;
   deleteMedia(id: number): Promise<boolean>;
+  
+  // Mood tracking management
+  saveMoodTracking(moodData: InsertMoodTracking): Promise<MoodTracking>;
+  getUserMoodTrackings(userId: number, options?: { 
+    startDate?: Date, 
+    endDate?: Date, 
+    limit?: number 
+  }): Promise<MoodTracking[]>;
+  getMoodTrackingById(id: number): Promise<MoodTracking | undefined>;
+  deleteMoodTracking(id: number): Promise<boolean>;
+  getMoodTrackingStats(userId: number, period: 'day' | 'week' | 'month' | 'year'): Promise<any>;
   
   // Audit logging
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
@@ -639,6 +651,179 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await query.orderBy(desc(auditLog.timestamp));
+  }
+
+  // Métodos de rastreamento de humor
+
+  async saveMoodTracking(moodData: InsertMoodTracking): Promise<MoodTracking> {
+    const [newMood] = await db
+      .insert(moodTracking)
+      .values({
+        ...moodData,
+        recordedAt: moodData.recordedAt || new Date(),
+      })
+      .returning();
+    
+    return newMood;
+  }
+
+  async getUserMoodTrackings(userId: number, options?: { 
+    startDate?: Date, 
+    endDate?: Date, 
+    limit?: number 
+  }): Promise<MoodTracking[]> {
+    let query = db
+      .select()
+      .from(moodTracking)
+      .where(eq(moodTracking.userId, userId));
+    
+    // Adicionar filtros adicionais se fornecidos
+    if (options) {
+      const conditions = [eq(moodTracking.userId, userId)];
+      
+      if (options.startDate) {
+        conditions.push(gte(moodTracking.recordedAt, options.startDate));
+      }
+      
+      if (options.endDate) {
+        conditions.push(lte(moodTracking.recordedAt, options.endDate));
+      }
+      
+      query = query.where(and(...conditions));
+      
+      if (options.limit) {
+        query = query.limit(options.limit);
+      }
+    }
+    
+    // Ordenar do mais recente para o mais antigo
+    return await query.orderBy(desc(moodTracking.recordedAt));
+  }
+
+  async getMoodTrackingById(id: number): Promise<MoodTracking | undefined> {
+    const [record] = await db
+      .select()
+      .from(moodTracking)
+      .where(eq(moodTracking.id, id));
+    
+    return record || undefined;
+  }
+
+  async deleteMoodTracking(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(moodTracking)
+        .where(eq(moodTracking.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao excluir registro de humor:", error);
+      return false;
+    }
+  }
+
+  // Método para obter estatísticas de humor por período
+  async getMoodTrackingStats(userId: number, period: 'day' | 'week' | 'month' | 'year'): Promise<any> {
+    // Definir intervalo de datas com base no período
+    const endDate = new Date();
+    const startDate = new Date();
+    
+    switch (period) {
+      case 'day':
+        startDate.setDate(startDate.getDate() - 1);
+        break;
+      case 'week':
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case 'month':
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+      case 'year':
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
+    }
+    
+    // Buscar registros de humor no período
+    const records = await this.getUserMoodTrackings(userId, {
+      startDate,
+      endDate
+    });
+    
+    // Agrupar por humor
+    const moodCounts: Record<string, number> = {};
+    const intensitySums: Record<string, number> = {};
+    const moodsByDate: Record<string, {mood: string, intensity: number}[]> = {};
+    
+    records.forEach(record => {
+      // Contagem por tipo de humor
+      if (!moodCounts[record.mood]) {
+        moodCounts[record.mood] = 0;
+        intensitySums[record.mood] = 0;
+      }
+      moodCounts[record.mood]++;
+      intensitySums[record.mood] += record.intensity;
+      
+      // Agrupar por data para análise de tendências
+      const dateKey = record.recordedAt.toISOString().split('T')[0];
+      if (!moodsByDate[dateKey]) {
+        moodsByDate[dateKey] = [];
+      }
+      moodsByDate[dateKey].push({
+        mood: record.mood,
+        intensity: record.intensity
+      });
+    });
+    
+    // Calcular humor médio e intensidade média
+    const moodStats = Object.keys(moodCounts).map(mood => ({
+      mood,
+      count: moodCounts[mood],
+      percentage: (moodCounts[mood] / records.length) * 100,
+      averageIntensity: intensitySums[mood] / moodCounts[mood]
+    }));
+    
+    // Ordenar por contagem (decrescente)
+    moodStats.sort((a, b) => b.count - a.count);
+    
+    // Estruturar dados para gráficos de tendência
+    const dateKeys = Object.keys(moodsByDate).sort();
+    const trendData = dateKeys.map(date => {
+      const dayMoods = moodsByDate[date];
+      // Se houver vários registros em um dia, pegar o humor predominante
+      const moodFrequency: Record<string, number> = {};
+      dayMoods.forEach(m => {
+        if (!moodFrequency[m.mood]) moodFrequency[m.mood] = 0;
+        moodFrequency[m.mood]++;
+      });
+      
+      // Encontrar o humor mais frequente do dia
+      let predominantMood = '';
+      let maxCount = 0;
+      Object.keys(moodFrequency).forEach(mood => {
+        if (moodFrequency[mood] > maxCount) {
+          maxCount = moodFrequency[mood];
+          predominantMood = mood;
+        }
+      });
+      
+      // Calcular a intensidade média do dia
+      const totalIntensity = dayMoods.reduce((sum, m) => sum + m.intensity, 0);
+      const averageIntensity = totalIntensity / dayMoods.length;
+      
+      return {
+        date,
+        predominantMood,
+        averageIntensity,
+        moodCount: dayMoods.length
+      };
+    });
+    
+    return {
+      period,
+      totalRecords: records.length,
+      moodStats,
+      trendData
+    };
   }
 }
 

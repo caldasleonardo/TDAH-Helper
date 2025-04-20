@@ -13,7 +13,8 @@ import {
   PlayCircleIcon, 
   BarChart3Icon, 
   UserIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  BookOpenIcon
 } from "lucide-react";
 import { motion, useAnimation } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -125,7 +126,7 @@ export default function HomePage() {
   }, []);
   
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-black overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-primary/5 to-purple-600/5 dark:from-neutral-900 dark:to-black overflow-hidden">
       <Header />
       
       {/* Background com partículas animadas */}
@@ -135,156 +136,179 @@ export default function HomePage() {
         ))}
       </div>
       
-      <main className="flex-grow container mx-auto px-4 py-8 md:py-12 pb-24 relative z-10">
-        {/* Hero Section */}
+      <main className="flex-grow relative z-10 pb-20 pt-3 max-w-lg mx-auto">
+        {/* Card principal em estilo app */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", duration: 0.8, delay: 0.1 }}
-            className="flex justify-center mb-6"
-          >
-            <div className="h-28 w-28 flex items-center justify-center bg-gradient-to-br from-primary/30 to-purple-600/30 rounded-full backdrop-blur-md border border-white/30 dark:border-neutral-700/30">
-              <BrainIcon className="h-14 w-14 text-primary drop-shadow-md" />
-            </div>
-          </motion.div>
-          
-          <motion.h1
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 dark:from-primary dark:to-purple-400"
-          >
-            TDAH Helper
-          </motion.h1>
-          
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="max-w-2xl mx-auto"
-          >
-            <p className="text-neutral-700 dark:text-neutral-300 text-lg mb-8">
-              Descubra insights sobre sua mente e desenvolva estratégias personalizadas para desbloquear seu potencial.
-            </p>
-            
-            {/* Citação animada */}
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ 
-                opacity: showQuote ? 1 : 0, 
-                height: showQuote ? "auto" : 0
-              }}
-              transition={{ duration: 0.5 }}
-              className="mb-8"
-            >
-              <blockquote className="italic text-neutral-600 dark:text-neutral-400 border-l-4 border-primary/40 pl-4 py-1">
-                "Compreender o TDAH é o primeiro passo para transformar desafios em forças."
-              </blockquote>
-            </motion.div>
-          </motion.div>
-          
-          {/* CTA Principal */}
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-            className="mb-12"
-          >
-            <Link href={user ? "/quiz" : "/auth"}>
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white shadow-lg shadow-primary/20 group transition-all duration-300 px-8"
-              >
-                <span>{user ? "Começar Quiz" : "Iniciar Jornada"}</span>
-                <motion.div
-                  initial={{ x: 0 }}
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1, repeat: Infinity, repeatDelay: 1 }}
-                >
-                  <ArrowRightIcon className="h-5 w-5 ml-2" />
-                </motion.div>
-              </Button>
-            </Link>
-          </motion.div>
-        </motion.div>
-        
-        {/* Cards de recursos */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-          className="mb-12"
+          transition={{ duration: 0.5 }}
+          className="bg-white/90 dark:bg-neutral-800/90 backdrop-blur-lg rounded-3xl mx-4 overflow-hidden shadow-xl"
         >
-          <h2 className="text-2xl font-bold text-center mb-8 dark:text-white">
-            <SparklesIcon className="inline-block h-5 w-5 mr-2 text-primary" />
-            Descubra Nossos Recursos
-          </h2>
+          {/* Área superior com gradiente */}
+          <div className="bg-gradient-to-br from-primary to-purple-600 pt-8 pb-16 px-6 relative overflow-hidden">
+            {/* Círculos decorativos */}
+            <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10"></div>
+            <div className="absolute top-10 -left-10 w-24 h-24 rounded-full bg-white/5"></div>
+            
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", duration: 1 }}
+              className="relative z-10"
+            >
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold text-white mb-1">TDAH Helper</h1>
+                <div className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-full">
+                  <BrainIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              
+              <p className="text-white/80 text-sm mb-3 max-w-[280px]">
+                Descubra insights e estratégias personalizadas para o seu TDAH
+              </p>
+            </motion.div>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            <FeatureCard 
-              icon={PlayCircleIcon} 
-              title="Quiz Interativo" 
-              description="Avaliação personalizada baseada em critérios clínicos para entender seus padrões cognitivos"
-            />
-            <FeatureCard 
-              icon={BarChart3Icon} 
-              title="Análise Detalhada" 
-              description="Resultados visualmente ricos com insights sobre áreas de atenção, hiperatividade e impulsividade"
-            />
-            <FeatureCard 
-              icon={LightbulbIcon} 
-              title="Recomendações" 
-              description="Estratégias práticas personalizadas para lidar com seus desafios específicos"
-            />
-            <FeatureCard 
-              icon={UserIcon} 
-              title="Acompanhamento" 
-              description="Registre seu progresso e observe sua evolução ao longo do tempo"
-            />
+          {/* Conteúdo principal */}
+          <div className="px-6 py-5 -mt-12">
+            {/* Card em destaque */}
+            <motion.div 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white dark:bg-neutral-700 rounded-2xl p-5 shadow-lg mb-6"
+            >
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 flex items-center justify-center bg-primary/10 dark:bg-primary/20 rounded-full mr-4">
+                  <LightbulbIcon className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg dark:text-white">Comece sua avaliação</h3>
+                  <p className="text-neutral-600 dark:text-neutral-300 text-sm">20 perguntas • 5 minutos</p>
+                </div>
+              </div>
+              
+              <p className="text-neutral-600 dark:text-neutral-300 text-sm mb-4">
+                Complete o quiz para receber resultados personalizados e recomendações práticas para seu dia a dia.
+              </p>
+              
+              <Link href={user ? "/quiz" : "/auth"} className="block">
+                <Button 
+                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl py-5 font-medium"
+                >
+                  <span>{user ? "Iniciar Quiz" : "Entrar para começar"}</span>
+                  <ArrowRightIcon className="h-5 w-5 ml-2" />
+                </Button>
+              </Link>
+            </motion.div>
+            
+            {/* Ferramentas de acesso rápido */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <h3 className="font-semibold mb-3 text-neutral-800 dark:text-white">Acesso Rápido</h3>
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <Link href="/mood-tracking">
+                  <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 p-4 rounded-2xl shadow-sm transition-transform hover:scale-105">
+                    <div className="h-10 w-10 flex items-center justify-center bg-blue-500/20 rounded-xl mb-2">
+                      <SparklesIcon className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <h4 className="font-medium text-sm text-neutral-800 dark:text-white">Rastreador de Humor</h4>
+                  </div>
+                </Link>
+                <Link href="/content">
+                  <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 dark:from-purple-500/20 dark:to-purple-600/20 p-4 rounded-2xl shadow-sm transition-transform hover:scale-105">
+                    <div className="h-10 w-10 flex items-center justify-center bg-purple-500/20 rounded-xl mb-2">
+                      <BookOpenIcon className="h-5 w-5 text-purple-500" />
+                    </div>
+                    <h4 className="font-medium text-sm text-neutral-800 dark:text-white">Conteúdo Educativo</h4>
+                  </div>
+                </Link>
+              </div>
+            </motion.div>
+            
+            {/* Depoimentos em carrossel */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="mb-4"
+            >
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-semibold text-neutral-800 dark:text-white">Experiências</h3>
+                <span className="text-xs text-primary">Ver mais</span>
+              </div>
+              
+              <div className="overflow-x-auto pb-4 -mx-6 px-6 flex space-x-4 scrollbar-hide-until-hover">
+                {[
+                  {
+                    text: "Finalmente entendi por que sempre tive dificuldades para me concentrar. As estratégias sugeridas realmente funcionam!",
+                    author: "Ana C."
+                  },
+                  {
+                    text: "Interface intuitiva e resultados bem explicados. Ajudou-me a buscar ajuda profissional no momento certo.",
+                    author: "Marcos L."
+                  },
+                  {
+                    text: "O rastreador de humor é incrível! Ajudou-me a perceber padrões em meus estados emocionais e como eles afetam meu TDAH.",
+                    author: "Carla S."
+                  }
+                ].map((review: ReviewItem, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
+                    className="bg-neutral-50 dark:bg-neutral-700 p-4 rounded-xl shadow-sm min-w-[280px] flex-shrink-0"
+                  >
+                    <div className="flex items-center mb-2">
+                      <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center mr-2 text-xs font-bold text-primary">
+                        {review.author.charAt(0)}
+                      </div>
+                      <span className="text-sm font-medium text-neutral-800 dark:text-white">{review.author}</span>
+                    </div>
+                    <p className="text-neutral-600 dark:text-neutral-300 text-sm italic">"{review.text}"</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </motion.div>
         
-        {/* Social Proof / Reviews */}
+        {/* Cards de recursos em formato app */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.1 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="px-4 mt-5"
         >
-          <div className="bg-gradient-to-r from-primary/5 to-purple-600/5 dark:from-primary/10 dark:to-purple-600/10 rounded-2xl p-6 backdrop-blur-sm border border-white/10 dark:border-neutral-800">
-            <h2 className="text-xl font-bold text-center mb-6 dark:text-white">O que nossos usuários dizem</h2>
+          <h3 className="font-semibold mb-3 text-neutral-800 dark:text-white pl-1">Recursos Premium</h3>
+          
+          <div className="overflow-x-auto pb-4 -mx-4 px-4 flex space-x-4 scrollbar-hide-until-hover">
+            <div className="bg-gradient-to-br from-orange-500/10 to-pink-500/10 dark:from-orange-500/20 dark:to-pink-500/20 p-4 rounded-2xl shadow-sm min-w-[200px] flex-shrink-0">
+              <div className="h-10 w-10 flex items-center justify-center bg-orange-500/20 rounded-xl mb-2">
+                <BarChart3Icon className="h-5 w-5 text-orange-500" />
+              </div>
+              <h4 className="font-medium text-sm text-neutral-800 dark:text-white mb-1">Análise Detalhada</h4>
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">Gráficos e métricas avançadas sobre seus padrões</p>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                {
-                  text: "Finalmente entendi por que sempre tive dificuldades para me concentrar. As estratégias sugeridas realmente funcionam!",
-                  author: "Ana C."
-                },
-                {
-                  text: "Interface intuitiva e resultados bem explicados. Ajudou-me a buscar ajuda profissional no momento certo.",
-                  author: "Marcos L."
-                },
-                {
-                  text: "O rastreador de humor é incrível! Ajudou-me a perceber padrões em meus estados emocionais e como eles afetam meu TDAH.",
-                  author: "Carla S."
-                }
-              ].map((review: ReviewItem, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 1.2 + index * 0.1 }}
-                  className="bg-white/50 dark:bg-neutral-800/50 p-4 rounded-lg shadow-sm"
-                >
-                  <p className="text-neutral-700 dark:text-neutral-300 text-sm mb-2 italic">"{review.text}"</p>
-                  <p className="text-right text-sm font-medium text-primary">— {review.author}</p>
-                </motion.div>
-              ))}
+            <div className="bg-gradient-to-br from-green-500/10 to-teal-500/10 dark:from-green-500/20 dark:to-teal-500/20 p-4 rounded-2xl shadow-sm min-w-[200px] flex-shrink-0">
+              <div className="h-10 w-10 flex items-center justify-center bg-green-500/20 rounded-xl mb-2">
+                <UserIcon className="h-5 w-5 text-green-500" />
+              </div>
+              <h4 className="font-medium text-sm text-neutral-800 dark:text-white mb-1">Consultoria</h4>
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">Acesso a especialistas para acompanhamento</p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 p-4 rounded-2xl shadow-sm min-w-[200px] flex-shrink-0">
+              <div className="h-10 w-10 flex items-center justify-center bg-blue-500/20 rounded-xl mb-2">
+                <PlayCircleIcon className="h-5 w-5 text-blue-500" />
+              </div>
+              <h4 className="font-medium text-sm text-neutral-800 dark:text-white mb-1">Exercícios</h4>
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">Técnicas interativas para foco e atenção</p>
             </div>
           </div>
         </motion.div>

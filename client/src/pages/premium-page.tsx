@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
   CheckCircle, 
-  StarIcon, 
+  Star, 
   Shield, 
   Calendar, 
   ArrowRight, 
@@ -58,7 +58,7 @@ export default function PremiumPage() {
     <div className="container mx-auto p-4 mb-20">
       <div className="flex flex-col items-center text-center mb-8">
         <div className="mb-2 flex items-center">
-          <StarIcon className="text-primary h-8 w-8 mr-2" />
+          <Star className="text-primary h-8 w-8 mr-2" />
           <h1 className="text-3xl font-bold">Recursos Premium</h1>
         </div>
         <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl">
@@ -185,7 +185,7 @@ export default function PremiumPage() {
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
-                      <TimerIcon className="h-8 w-8 text-primary p-1 bg-primary/10 rounded-lg" />
+                      <Timer className="h-8 w-8 text-primary p-1 bg-primary/10 rounded-lg" />
                       <Badge className="bg-primary/10 text-primary border-primary/20">
                         Premium
                       </Badge>

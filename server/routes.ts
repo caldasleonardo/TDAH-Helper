@@ -280,9 +280,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Data de início e fim do período atual
-      // Acessar as propriedades com verificação de tipo
-      const currentPeriodStart = new Date((subscription as any).current_period_start * 1000);
-      const currentPeriodEnd = new Date((subscription as any).current_period_end * 1000);
+      // Vamos garantir que estamos criando datas válidas
+      const now = new Date();
+      // Data atual para início e um mês depois para término (assinatura mensal padrão)
+      const currentPeriodStart = now;
+      // Adicionar 30 dias para período mensal ou 365 para anual
+      const currentPeriodEnd = new Date();
+      currentPeriodEnd.setDate(currentPeriodEnd.getDate() + (planType === 'yearly' ? 365 : 30));
       
       // Salvar a assinatura no banco de dados
       const savedSubscription = await storage.createSubscription({

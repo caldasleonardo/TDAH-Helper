@@ -1,10 +1,20 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertQuizResultSchema } from "@shared/schema";
+import { 
+  insertQuizResultSchema, 
+  insertAppConfigSchema, 
+  insertContentSchema,
+  insertMediaSchema,
+  insertAdminUserSchema
+} from "@shared/schema";
 import { ZodError } from "zod";
 import Stripe from "stripe";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { randomUUID } from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Inicialização do Stripe
@@ -451,6 +461,675 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Erro ao buscar funcionalidades premium do usuário",
         error: error.message
       });
+    }
+  });
+
+  // Configuração do Multer para upload de arquivos
+  const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+      const uploadDir = path.join(__dirname, '../public/uploads');
+      // Verifica se o diretório existe, se não, cria
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: function(req, file, cb) {
+      const uniqueFilename = `${randomUUID()}-${file.originalname}`;
+      cb(null, uniqueFilename);
+    }
+  });
+  
+  const upload = multer({ 
+    storage: storage,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB de limite
+    },
+    fileFilter: function(req, file, cb) {
+      // Verifica os tipos de arquivo permitidos
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Tipo de arquivo não suportado. Apenas JPG, PNG, GIF e SVG são permitidos.'));
+      }
+    }
+  });
+
+  // Middleware para verificar se um usuário é administrador
+  const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Autenticação necessária" });
+    }
+    
+    try {
+      // Verificar se o usuário está na tabela de adminUsers
+      const adminUser = await storage.getAdminUserByUsername(req.user.username);
+      
+      if (!adminUser) {
+        return res.status(403).json({ message: "Acesso restrito a administradores" });
+      }
+      
+      // Atualizar o último login
+      await storage.updateAdminUserLastLogin(adminUser.id);
+      
+      // Adiciona o admin ao request para uso posterior
+      (req as any).adminUser = adminUser;
+      
+      // Tudo certo, continuar
+      next();
+    } catch (error) {
+      console.error("Erro ao verificar status de administrador:", error);
+      res.status(500).json({ message: "Erro interno ao verificar permissões" });
+    }
+  };
+  
+  // Middleware que registra ações administrativas
+  const logAdminAction = async (req: Request, res: Response, next: NextFunction) => {
+    // Middleware para registrar ações administrativas
+    const originalJson = res.json;
+    
+    // Sobrescrever o método json para registrar a ação após o sucesso
+    res.json = function(body) {
+      // Se a resposta é bem-sucedida (2xx), registrar a ação
+      if (res.statusCode >= 200 && res.statusCode < 300 && (req as any).adminUser) {
+        try {
+          const action = req.method; // GET, POST, PUT, DELETE
+          const path = req.path;
+          let entity = '';
+          let entityId = null;
+          
+          // Tentar determinar a entidade com base no caminho
+          if (path.includes('/admin/users')) {
+            entity = 'users';
+          } else if (path.includes('/admin/config')) {
+            entity = 'app_config';
+          } else if (path.includes('/admin/content')) {
+            entity = 'content';
+          } else if (path.includes('/admin/media')) {
+            entity = 'media';
+          } else if (path.includes('/admin/premium-features')) {
+            entity = 'premium_features';
+          } else if (path.includes('/admin/quiz-questions')) {
+            entity = 'quiz_questions';
+          }
+          
+          // Verificar se há um ID na rota
+          const match = path.match(/\/(\d+)(?:\/|$)/);
+          if (match) {
+            entityId = parseInt(match[1]);
+          }
+          
+          // Criar o registro de auditoria
+          storage.createAuditLog({
+            userId: (req as any).adminUser.id,
+            action,
+            entity,
+            entityId,
+            details: JSON.stringify({
+              method: req.method,
+              path: req.path,
+              body: req.body,
+              ip: req.ip,
+              userAgent: req.headers['user-agent']
+            }),
+            ip: req.ip,
+            userAgent: req.headers['user-agent'] as string
+          }).catch(err => console.error("Erro ao criar log de auditoria:", err));
+        } catch (error) {
+          console.error("Erro ao registrar ação de admin:", error);
+        }
+      }
+      
+      // Chamar o método original
+      return originalJson.call(this, body);
+    };
+    
+    next();
+  };
+
+  // Admin API - Login administrativo
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: "Nome de usuário e senha são obrigatórios" });
+      }
+      
+      // Buscar o usuário admin pelo nome de usuário
+      const admin = await storage.getAdminUserByUsername(username);
+      
+      if (!admin) {
+        return res.status(401).json({ message: "Credenciais inválidas" });
+      }
+      
+      // Implementar a verificação de senha aqui
+      // (Por ora, estamos apenas simulando uma comparação)
+      // Em produção, use bcrypt ou outro algoritmo seguro
+      if (admin.password !== password) {
+        return res.status(401).json({ message: "Credenciais inválidas" });
+      }
+      
+      // Atualizar último login
+      await storage.updateAdminUserLastLogin(admin.id);
+      
+      // Retorna informações do admin (sem a senha)
+      const { password: _, ...adminInfo } = admin;
+      
+      res.json({ 
+        message: "Login administrativo bem-sucedido",
+        admin: adminInfo
+      });
+      
+    } catch (error: any) {
+      console.error("Erro no login administrativo:", error);
+      res.status(500).json({ message: "Erro interno no servidor", error: error.message });
+    }
+  });
+
+  // Rota para obter todos os administradores
+  app.get("/api/admin/users", isAdmin, async (req, res) => {
+    try {
+      const admins = await storage.getAllAdminUsers();
+      // Remover as senhas dos objetos
+      const adminsWithoutPasswords = admins.map(admin => {
+        const { password, ...adminInfo } = admin;
+        return adminInfo;
+      });
+      
+      res.json(adminsWithoutPasswords);
+    } catch (error: any) {
+      console.error("Erro ao buscar administradores:", error);
+      res.status(500).json({ message: "Erro ao buscar administradores", error: error.message });
+    }
+  });
+
+  // Rota para criar um novo administrador
+  app.post("/api/admin/users", isAdmin, async (req, res) => {
+    try {
+      // Validar dados de entrada
+      const adminData = insertAdminUserSchema.parse(req.body);
+      
+      // Verificar se o nome de usuário já existe
+      const existingAdmin = await storage.getAdminUserByUsername(adminData.username);
+      
+      if (existingAdmin) {
+        return res.status(400).json({ message: "Nome de usuário já está em uso" });
+      }
+      
+      // Criar novo administrador
+      const newAdmin = await storage.createAdminUser(adminData);
+      
+      // Remover a senha do objeto de resposta
+      const { password, ...adminInfo } = newAdmin;
+      
+      res.status(201).json(adminInfo);
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        console.error("Erro ao criar administrador:", error);
+        res.status(500).json({ message: "Erro interno ao criar administrador", error: error.message });
+      }
+    }
+  });
+
+  // Rotas de configuração do aplicativo
+  
+  // Obter todas as configurações
+  app.get("/api/admin/config", isAdmin, async (req, res) => {
+    try {
+      const { category } = req.query;
+      
+      let configs;
+      if (category) {
+        configs = await storage.getAppConfigsByCategory(category as string);
+      } else {
+        configs = await storage.getAllAppConfigs();
+      }
+      
+      res.json(configs);
+    } catch (error: any) {
+      console.error("Erro ao buscar configurações:", error);
+      res.status(500).json({ message: "Erro ao buscar configurações", error: error.message });
+    }
+  });
+  
+  // Obter uma configuração específica por chave
+  app.get("/api/admin/config/:key", isAdmin, async (req, res) => {
+    try {
+      const key = req.params.key;
+      const config = await storage.getAppConfig(key);
+      
+      if (!config) {
+        return res.status(404).json({ message: "Configuração não encontrada" });
+      }
+      
+      res.json(config);
+    } catch (error: any) {
+      console.error(`Erro ao buscar configuração [${req.params.key}]:`, error);
+      res.status(500).json({ message: "Erro ao buscar configuração", error: error.message });
+    }
+  });
+  
+  // Criar ou atualizar configuração
+  app.post("/api/admin/config", isAdmin, logAdminAction, async (req, res) => {
+    try {
+      const configData = insertAppConfigSchema.parse(req.body);
+      const adminId = (req as any).adminUser.id;
+      
+      // Garantir que o updatedBy seja o admin atual
+      configData.updatedBy = adminId;
+      
+      const config = await storage.setAppConfig(configData);
+      
+      res.status(201).json(config);
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        console.error("Erro ao criar/atualizar configuração:", error);
+        res.status(500).json({ message: "Erro interno ao salvar configuração", error: error.message });
+      }
+    }
+  });
+  
+  // Atualizar valor de configuração
+  app.put("/api/admin/config/:id", isAdmin, logAdminAction, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { value } = req.body;
+      
+      if (isNaN(id) || value === undefined) {
+        return res.status(400).json({ message: "ID e valor são obrigatórios" });
+      }
+      
+      const adminId = (req as any).adminUser.id;
+      
+      const updatedConfig = await storage.updateAppConfig(id, value, adminId);
+      
+      res.json(updatedConfig);
+    } catch (error: any) {
+      console.error(`Erro ao atualizar configuração [${req.params.id}]:`, error);
+      res.status(500).json({ message: "Erro ao atualizar configuração", error: error.message });
+    }
+  });
+  
+  // Excluir configuração
+  app.delete("/api/admin/config/:id", isAdmin, logAdminAction, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      const result = await storage.deleteAppConfig(id);
+      
+      if (result) {
+        res.json({ success: true, message: "Configuração excluída com sucesso" });
+      } else {
+        res.status(404).json({ message: "Configuração não encontrada ou não pode ser excluída" });
+      }
+    } catch (error: any) {
+      console.error(`Erro ao excluir configuração [${req.params.id}]:`, error);
+      res.status(500).json({ message: "Erro ao excluir configuração", error: error.message });
+    }
+  });
+  
+  // Rotas para gerenciamento de conteúdo
+  
+  // Obter todo o conteúdo
+  app.get("/api/admin/content", isAdmin, async (req, res) => {
+    try {
+      const { category, includeUnpublished } = req.query;
+      
+      let content;
+      if (category) {
+        content = await storage.getContentsByCategory(category as string);
+      } else {
+        content = await storage.getAllContents(includeUnpublished === 'true');
+      }
+      
+      res.json(content);
+    } catch (error: any) {
+      console.error("Erro ao buscar conteúdo:", error);
+      res.status(500).json({ message: "Erro ao buscar conteúdo", error: error.message });
+    }
+  });
+  
+  // Obter conteúdo específico
+  app.get("/api/admin/content/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      const content = await storage.getContent(id);
+      
+      if (!content) {
+        return res.status(404).json({ message: "Conteúdo não encontrado" });
+      }
+      
+      res.json(content);
+    } catch (error: any) {
+      console.error(`Erro ao buscar conteúdo [${req.params.id}]:`, error);
+      res.status(500).json({ message: "Erro ao buscar conteúdo", error: error.message });
+    }
+  });
+  
+  // Criar novo conteúdo
+  app.post("/api/admin/content", isAdmin, logAdminAction, async (req, res) => {
+    try {
+      const contentData = insertContentSchema.parse(req.body);
+      const adminId = (req as any).adminUser.id;
+      
+      // Definir o criador e editor como o admin atual
+      contentData.createdBy = adminId;
+      contentData.updatedBy = adminId;
+      
+      // Criar slug a partir do título, se não fornecido
+      if (!contentData.slug) {
+        contentData.slug = contentData.title
+          .toLowerCase()
+          .replace(/[^\w\s]/g, '')
+          .replace(/\s+/g, '-');
+      }
+      
+      const newContent = await storage.createContent(contentData);
+      
+      res.status(201).json(newContent);
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        console.error("Erro ao criar conteúdo:", error);
+        res.status(500).json({ message: "Erro interno ao criar conteúdo", error: error.message });
+      }
+    }
+  });
+  
+  // Atualizar conteúdo
+  app.put("/api/admin/content/:id", isAdmin, logAdminAction, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      const adminId = (req as any).adminUser.id;
+      
+      // Adicionar o admin como editor
+      const updateData = {
+        ...req.body,
+        updatedBy: adminId
+      };
+      
+      const updatedContent = await storage.updateContent(id, updateData);
+      
+      res.json(updatedContent);
+    } catch (error: any) {
+      console.error(`Erro ao atualizar conteúdo [${req.params.id}]:`, error);
+      res.status(500).json({ message: "Erro ao atualizar conteúdo", error: error.message });
+    }
+  });
+  
+  // Excluir conteúdo
+  app.delete("/api/admin/content/:id", isAdmin, logAdminAction, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      const result = await storage.deleteContent(id);
+      
+      if (result) {
+        res.json({ success: true, message: "Conteúdo excluído com sucesso" });
+      } else {
+        res.status(404).json({ message: "Conteúdo não encontrado ou não pode ser excluído" });
+      }
+    } catch (error: any) {
+      console.error(`Erro ao excluir conteúdo [${req.params.id}]:`, error);
+      res.status(500).json({ message: "Erro ao excluir conteúdo", error: error.message });
+    }
+  });
+  
+  // Rotas para gerenciamento de mídia
+  
+  // Obter todas as mídias
+  app.get("/api/admin/media", isAdmin, async (req, res) => {
+    try {
+      const { category } = req.query;
+      
+      let media;
+      if (category) {
+        media = await storage.getMediaByCategory(category as string);
+      } else {
+        media = await storage.getAllMedia();
+      }
+      
+      res.json(media);
+    } catch (error: any) {
+      console.error("Erro ao buscar mídias:", error);
+      res.status(500).json({ message: "Erro ao buscar mídias", error: error.message });
+    }
+  });
+  
+  // Obter mídia específica
+  app.get("/api/admin/media/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      const media = await storage.getMedia(id);
+      
+      if (!media) {
+        return res.status(404).json({ message: "Mídia não encontrada" });
+      }
+      
+      res.json(media);
+    } catch (error: any) {
+      console.error(`Erro ao buscar mídia [${req.params.id}]:`, error);
+      res.status(500).json({ message: "Erro ao buscar mídia", error: error.message });
+    }
+  });
+  
+  // Upload de nova mídia
+  app.post("/api/admin/media/upload", isAdmin, upload.single('file'), logAdminAction, async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+      
+      const { category, alt } = req.body;
+      const adminId = (req as any).adminUser.id;
+      
+      // Criar registro da mídia no banco de dados
+      const newMedia = await storage.createMedia({
+        filename: req.file.filename,
+        originalFilename: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        url: `/uploads/${req.file.filename}`, // URL relativa ao diretório público
+        alt: alt || req.file.originalname,
+        category: category || 'uploads',
+        uploadedBy: adminId
+      });
+      
+      res.status(201).json(newMedia);
+    } catch (error: any) {
+      console.error("Erro ao fazer upload de mídia:", error);
+      res.status(500).json({ message: "Erro no upload de mídia", error: error.message });
+    }
+  });
+  
+  // Excluir mídia
+  app.delete("/api/admin/media/:id", isAdmin, logAdminAction, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      // Obter a mídia antes de excluir para poder remover o arquivo físico
+      const media = await storage.getMedia(id);
+      
+      if (!media) {
+        return res.status(404).json({ message: "Mídia não encontrada" });
+      }
+      
+      // Excluir o registro no banco de dados
+      const result = await storage.deleteMedia(id);
+      
+      if (result) {
+        // Tentar excluir o arquivo físico, se existir
+        try {
+          const filePath = path.join(__dirname, '../public', media.url);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        } catch (fileError) {
+          console.error(`Erro ao excluir arquivo físico [${media.url}]:`, fileError);
+          // Não falhar o endpoint se o arquivo não puder ser excluído
+        }
+        
+        res.json({ success: true, message: "Mídia excluída com sucesso" });
+      } else {
+        res.status(500).json({ message: "Falha ao excluir mídia" });
+      }
+    } catch (error: any) {
+      console.error(`Erro ao excluir mídia [${req.params.id}]:`, error);
+      res.status(500).json({ message: "Erro ao excluir mídia", error: error.message });
+    }
+  });
+  
+  // Logs de auditoria
+  app.get("/api/admin/audit-logs", isAdmin, async (req, res) => {
+    try {
+      const { userId, action, entity, from, to, limit } = req.query;
+      
+      // Converter parâmetros
+      const options: any = {};
+      
+      if (userId) options.userId = parseInt(userId as string);
+      if (action) options.action = action as string;
+      if (entity) options.entity = entity as string;
+      if (from) options.fromDate = new Date(from as string);
+      if (to) options.toDate = new Date(to as string);
+      if (limit) options.limit = parseInt(limit as string);
+      
+      const logs = await storage.getAuditLogs(options);
+      
+      res.json(logs);
+    } catch (error: any) {
+      console.error("Erro ao buscar logs de auditoria:", error);
+      res.status(500).json({ message: "Erro ao buscar logs de auditoria", error: error.message });
+    }
+  });
+  
+  // API pública para conteúdo
+  
+  // Obter conteúdo específico pelo slug
+  app.get("/api/content/:slug", async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      
+      if (!slug) {
+        return res.status(400).json({ message: "Slug é obrigatório" });
+      }
+      
+      const contentItem = await storage.getContentBySlug(slug);
+      
+      if (!contentItem) {
+        return res.status(404).json({ message: "Conteúdo não encontrado" });
+      }
+      
+      // Verificar se o conteúdo está publicado ou se o usuário é admin
+      if (!contentItem.isPublished) {
+        let isAdminUser = false;
+        
+        if (req.isAuthenticated()) {
+          const adminUser = await storage.getAdminUserByUsername(req.user.username);
+          isAdminUser = !!adminUser;
+        }
+        
+        if (!isAdminUser) {
+          return res.status(403).json({ message: "Este conteúdo não está disponível" });
+        }
+      }
+      
+      res.json(contentItem);
+    } catch (error: any) {
+      console.error(`Erro ao buscar conteúdo por slug [${req.params.slug}]:`, error);
+      res.status(500).json({ message: "Erro ao buscar conteúdo", error: error.message });
+    }
+  });
+  
+  // Obter conteúdo por categoria (apenas publicados)
+  app.get("/api/content/category/:category", async (req, res) => {
+    try {
+      const category = req.params.category;
+      
+      if (!category) {
+        return res.status(400).json({ message: "Categoria é obrigatória" });
+      }
+      
+      const contentItems = await storage.getContentsByCategory(category);
+      
+      res.json(contentItems);
+    } catch (error: any) {
+      console.error(`Erro ao buscar conteúdo por categoria [${req.params.category}]:`, error);
+      res.status(500).json({ message: "Erro ao buscar conteúdo", error: error.message });
+    }
+  });
+
+  // API pública para configurações
+  app.get("/api/config/:key", async (req, res) => {
+    try {
+      const key = req.params.key;
+      
+      if (!key) {
+        return res.status(400).json({ message: "Chave é obrigatória" });
+      }
+      
+      const config = await storage.getAppConfig(key);
+      
+      if (!config) {
+        return res.status(404).json({ message: "Configuração não encontrada" });
+      }
+      
+      res.json(config);
+    } catch (error: any) {
+      console.error(`Erro ao buscar configuração [${req.params.key}]:`, error);
+      res.status(500).json({ message: "Erro ao buscar configuração", error: error.message });
+    }
+  });
+  
+  // Obter configurações por categoria
+  app.get("/api/config/category/:category", async (req, res) => {
+    try {
+      const category = req.params.category;
+      
+      if (!category) {
+        return res.status(400).json({ message: "Categoria é obrigatória" });
+      }
+      
+      const configs = await storage.getAppConfigsByCategory(category);
+      
+      res.json(configs);
+    } catch (error: any) {
+      console.error(`Erro ao buscar configurações por categoria [${req.params.category}]:`, error);
+      res.status(500).json({ message: "Erro ao buscar configurações", error: error.message });
     }
   });
 

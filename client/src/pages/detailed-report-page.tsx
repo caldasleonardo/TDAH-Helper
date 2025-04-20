@@ -172,6 +172,17 @@ export default function DetailedReportPage() {
   const hyperactivityPercent = calculatePercentage(result.hyperactivityScore || 0, 9);
   const impulsivityPercent = calculatePercentage(result.impulsivityScore || 0, 15);
   
+  // Determinar o nível de cada área
+  const getLevel = (percent: number) => {
+    if (percent < 33) return { level: 'baixo', color: 'bg-green-500', className: 'text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30' };
+    if (percent < 66) return { level: 'médio', color: 'bg-amber-500', className: 'text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30' };
+    return { level: 'alto', color: 'bg-red-500', className: 'text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30' };
+  };
+  
+  const inattentionLevel = getLevel(inattentionPercent);
+  const hyperactivityLevel = getLevel(hyperactivityPercent);
+  const impulsivityLevel = getLevel(impulsivityPercent);
+  
   // Dados detalhados para cada seção
   const detailedData: Record<string, DetailedReportSection> = {
     inattention: {

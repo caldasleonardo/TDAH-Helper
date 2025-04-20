@@ -98,6 +98,17 @@ export default function ResultsPage() {
   const hyperactivityPercent = calculatePercentage(result.hyperactivityScore || 0, 9); // 3 hyperactivity questions * 3
   const impulsivityPercent = calculatePercentage(result.impulsivityScore || 0, 15); // 5 impulsivity questions * 3
   
+  // Determinar o nível de cada área
+  const getLevel = (percent: number) => {
+    if (percent < 33) return { level: 'baixo', color: 'bg-green-500' };
+    if (percent < 66) return { level: 'médio', color: 'bg-amber-500' };
+    return { level: 'alto', color: 'bg-red-500' };
+  };
+  
+  const inattentionLevel = getLevel(inattentionPercent);
+  const hyperactivityLevel = getLevel(hyperactivityPercent);
+  const impulsivityLevel = getLevel(impulsivityPercent);
+  
   return (
     <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900">
       <Header />
@@ -162,40 +173,55 @@ export default function ResultsPage() {
                     <h4 className="font-medium text-sm mb-2 dark:text-white">Áreas observadas:</h4>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-neutral-700 dark:text-neutral-300">Desatenção</span>
+                        <div className="flex items-center">
+                          <span className="text-sm text-neutral-700 dark:text-neutral-300 mr-2">Desatenção</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded-full font-medium capitalize
+                            ${inattentionLevel.level === 'baixo' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ''}
+                            ${inattentionLevel.level === 'médio' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : ''}
+                            ${inattentionLevel.level === 'alto' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : ''}
+                          ">
+                            {inattentionLevel.level}
+                          </span>
+                        </div>
                         <div className="w-32 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                           <div 
-                            className={`h-2 rounded-full
-                              ${category === 'low' ? 'bg-green-500' : ''}
-                              ${category === 'moderate' ? 'bg-amber-500' : ''}
-                              ${category === 'high' ? 'bg-red-500' : ''}
-                            `}
+                            className={`h-2 rounded-full ${inattentionLevel.color}`}
                             style={{ width: `${inattentionPercent}%` }}
                           />
                         </div>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-neutral-700 dark:text-neutral-300">Hiperatividade</span>
+                        <div className="flex items-center">
+                          <span className="text-sm text-neutral-700 dark:text-neutral-300 mr-2">Hiperatividade</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded-full font-medium capitalize
+                            ${hyperactivityLevel.level === 'baixo' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ''}
+                            ${hyperactivityLevel.level === 'médio' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : ''}
+                            ${hyperactivityLevel.level === 'alto' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : ''}
+                          ">
+                            {hyperactivityLevel.level}
+                          </span>
+                        </div>
                         <div className="w-32 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                           <div 
-                            className={`h-2 rounded-full
-                              ${category === 'low' ? 'bg-green-500' : ''}
-                              ${category === 'moderate' ? 'bg-amber-500' : ''}
-                              ${category === 'high' ? 'bg-red-500' : ''}
-                            `}
+                            className={`h-2 rounded-full ${hyperactivityLevel.color}`}
                             style={{ width: `${hyperactivityPercent}%` }}
                           />
                         </div>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-neutral-700 dark:text-neutral-300">Impulsividade</span>
+                        <div className="flex items-center">
+                          <span className="text-sm text-neutral-700 dark:text-neutral-300 mr-2">Impulsividade</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded-full font-medium capitalize
+                            ${impulsivityLevel.level === 'baixo' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ''}
+                            ${impulsivityLevel.level === 'médio' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : ''}
+                            ${impulsivityLevel.level === 'alto' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : ''}
+                          ">
+                            {impulsivityLevel.level}
+                          </span>
+                        </div>
                         <div className="w-32 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                           <div 
-                            className={`h-2 rounded-full
-                              ${category === 'low' ? 'bg-green-500' : ''}
-                              ${category === 'moderate' ? 'bg-amber-500' : ''}
-                              ${category === 'high' ? 'bg-red-500' : ''}
-                            `}
+                            className={`h-2 rounded-full ${impulsivityLevel.color}`}
                             style={{ width: `${impulsivityPercent}%` }}
                           />
                         </div>

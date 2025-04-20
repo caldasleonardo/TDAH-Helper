@@ -919,5 +919,174 @@ export const articles: Article[] = [
         text: "Lembre-se que a tecnologia deve servir como apoio, não como substituto para o desenvolvimento de habilidades fundamentais de autorregulação. O objetivo ideal é usar estas ferramentas para construir gradualmente capacidades internas, mesmo que o suporte externo continue sendo valioso a longo prazo."
       }
     ]
+  },
+  {
+    id: 11,
+    title: "Mindfulness para TDAH",
+    description: "Práticas de atenção plena que ajudam a gerenciar os sintomas",
+    category: "strategies",
+    readTime: 8,
+    icon: BrainIcon,
+    content: [
+      {
+        type: "paragraph",
+        text: "Mindfulness, ou atenção plena, é uma prática que envolve direcionar a atenção ao momento presente de forma intencional e sem julgamento. Para pessoas com TDAH, que frequentemente lutam contra a distração e a impulsividade, as práticas de mindfulness podem oferecer benefícios significativos no gerenciamento dos sintomas."
+      },
+      {
+        type: "subtitle",
+        text: "Benefícios do mindfulness para TDAH"
+      },
+      {
+        type: "list",
+        items: [
+          "Melhora da atenção sustentada e capacidade de notar quando a mente divaga",
+          "Redução da impulsividade através da criação de um 'espaço' entre estímulo e resposta",
+          "Maior consciência dos padrões de pensamento e comportamento",
+          "Diminuição do estresse e ansiedade que frequentemente acompanham o TDAH",
+          "Desenvolvimento da autorregulação emocional"
+        ]
+      },
+      {
+        type: "subtitle",
+        text: "Práticas adaptadas para TDAH"
+      },
+      {
+        type: "paragraph",
+        text: "As práticas tradicionais de mindfulness podem ser desafiadoras para pessoas com TDAH. Aqui estão algumas adaptações que tornam a prática mais acessível:"
+      },
+      {
+        type: "list",
+        items: [
+          "Meditações curtas: Comece com sessões de 2-3 minutos e aumente gradualmente",
+          "Meditação em movimento: Pratique mindfulness durante caminhadas, yoga ou outras atividades físicas",
+          "Âncoras sensoriais múltiplas: Além da respiração, utilize sons, sensações físicas ou mesmo objetos tangíveis para ajudar a manter o foco",
+          "Prática informal: Integre momentos de atenção plena em atividades cotidianas, como escovar os dentes ou comer",
+          "Uso de aplicativos específicos para TDAH: Existem apps que oferecem meditações guiadas com lembretes e estímulos visuais/sonoros para reengajar a atenção"
+        ]
+      },
+      {
+        type: "subtitle",
+        text: "Exercício básico: Respiração com contagem"
+      },
+      {
+        type: "paragraph",
+        text: "Este é um exercício simples para começar sua prática de mindfulness:"
+      },
+      {
+        type: "list",
+        items: [
+          "Sente-se confortavelmente e feche os olhos, ou mantenha-os semifechados",
+          "Respire naturalmente e observe a sensação da respiração entrando e saindo",
+          "Conte mentalmente 'um' na inalação e 'dois' na exalação",
+          "Continue contando até 10 e então recomece de 1",
+          "Quando perceber que sua mente divagou (o que acontecerá muitas vezes), simplesmente observe isso sem julgamento e retorne gentilmente à contagem"
+        ]
+      },
+      {
+        type: "paragraph",
+        text: "Lembre-se que mindfulness é uma prática, não uma perfeição. O objetivo não é eliminar as distrações, mas desenvolver a habilidade de notar quando você está distraído e retornar ao momento presente repetidamente. Esta 'ginástica mental' fortalece justamente as áreas do cérebro que tendem a ser mais desafiadas no TDAH."
+      }
+    ]
+  },
+  {
+    id: 12,
+    title: "TDAH no ambiente de trabalho",
+    description: "Estratégias para ter sucesso profissional com o transtorno",
+    category: "lifestyle",
+    readTime: 10,
+    icon: ActivityIcon,
+    content: [
+      {
+        type: "paragraph",
+        text: "O ambiente de trabalho moderno, com suas múltiplas demandas, prazos e distrações, pode representar um desafio significativo para adultos com TDAH. No entanto, com as estratégias certas e adaptações apropriadas, pessoas com TDAH podem não apenas ter sucesso, mas também transformar muitas características do transtorno em vantagens profissionais."
+      },
+      {
+        type: "subtitle",
+        text: "Desafios comuns no trabalho"
+      },
+      {
+        type: "list",
+        items: [
+          "Gerenciamento de tempo e cumprimento de prazos",
+          "Organização de documentos e informações",
+          "Manutenção do foco em reuniões longas ou tarefas rotineiras",
+          "Priorização de múltiplas responsabilidades",
+          "Controle da impulsividade em comunicações e tomada de decisões",
+          "Adaptação a ambientes de escritório aberto com muitos estímulos"
+        ]
+      },
+      {
+        type: "subtitle",
+        text: "Adaptações no ambiente físico"
+      },
+      {
+        type: "paragraph",
+        text: "Modificações no seu espaço de trabalho podem fazer uma grande diferença:"
+      },
+      {
+        type: "list",
+        items: [
+          "Use fones de ouvido com cancelamento de ruído para minimizar distrações sonoras",
+          "Solicite um espaço de trabalho em área mais tranquila ou com menos tráfego de pessoas",
+          "Organize seu espaço visual com código de cores e sistemas de arquivamento visíveis",
+          "Utilize divisórias ou plantas para reduzir estímulos visuais excessivos",
+          "Considere uma mesa em pé ou bola de exercício como cadeira para permitir movimento"
+        ]
+      },
+      {
+        type: "subtitle",
+        text: "Estratégias de gerenciamento de tarefas"
+      },
+      {
+        type: "list",
+        items: [
+          "Utilize sistemas externos de organização (apps, calendários, lembretes)",
+          "Divida projetos grandes em tarefas menores e mais gerenciáveis",
+          "Estabeleça marcos intermediários antes dos prazos finais",
+          "Alterne entre tarefas que exigem alto foco e aquelas mais rotineiras",
+          "Reserve blocos de tempo para trabalho profundo, sem e-mails ou mensagens",
+          "Use a técnica 'body doubling': trabalhe ao lado de um colega para aumentar a responsabilidade"
+        ]
+      },
+      {
+        type: "subtitle",
+        text: "Comunicação e direitos trabalhistas"
+      },
+      {
+        type: "paragraph",
+        text: "Decidir se e como divulgar seu TDAH no trabalho é uma escolha pessoal, mas conhecer seus direitos é essencial:"
+      },
+      {
+        type: "list",
+        items: [
+          "Em muitos países, TDAH é considerado uma condição que garante acomodações razoáveis no ambiente de trabalho",
+          "Você pode solicitar adaptações específicas que não causem 'dificuldades indevidas' ao empregador",
+          "Considere consultar o departamento de RH ou um especialista em direito trabalhista para entender suas opções",
+          "Se optar por divulgar, foque nas soluções e adaptações que aumentarão sua produtividade, não apenas nos desafios"
+        ]
+      },
+      {
+        type: "subtitle",
+        text: "Transformando características do TDAH em forças"
+      },
+      {
+        type: "paragraph",
+        text: "Muitas características associadas ao TDAH podem se tornar vantagens competitivas quando canalizadas adequadamente:"
+      },
+      {
+        type: "list",
+        items: [
+          "Hiperfoco: Capacidade de mergulhar profundamente em projetos interessantes e gerar resultados excepcionais",
+          "Pensamento divergente: Habilidade para fazer conexões não óbvias e encontrar soluções criativas",
+          "Energia e entusiasmo: Dinamismo que pode inspirar equipes e impulsionar projetos",
+          "Resiliência: Experiência em superar desafios que desenvolve persistência acima da média",
+          "Multitasking: Em algumas funções, a tendência a alternar rapidamente entre tarefas pode ser benéfica"
+        ]
+      },
+      {
+        type: "paragraph",
+        text: "Lembre-se que o sucesso profissional com TDAH frequentemente envolve encontrar a carreira certa que se alinhe com seus pontos fortes naturais, além de implementar estratégias para gerenciar os desafios. Com a abordagem adequada, o TDAH pode se tornar não um obstáculo, mas um catalisador para uma carreira extraordinária."
+      }
+    ]
   }
 ];

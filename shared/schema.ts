@@ -215,7 +215,7 @@ export const moodTracking = pgTable("mood_tracking", {
   userId: integer("user_id").notNull().references(() => users.id),
   mood: varchar("mood", { length: 50 }).notNull(), // emoji ou nome do humor
   intensity: integer("intensity").notNull().default(3), // escala de 1-5
-  notes: text("notes"),
+  note: text("note"),
   tags: text("tags").array(),
   recordedAt: timestamp("recorded_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),

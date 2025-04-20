@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   useMoodTracking, 
-  MoodType, 
-  MoodTrackingProvider 
+  MoodType 
 } from "@/hooks/use-mood-tracking";
 import { MoodEmoji } from "@/components/mood/MoodEmoji";
 import { MoodIntensitySlider } from "@/components/mood/MoodIntensitySlider";
-import { ProtectedRoute } from "@/lib/protected-route";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -315,11 +313,9 @@ function MoodTrackingPageContent() {
 }
 
 export default function MoodTrackingPage() {
+  // ProtectedRoute é usado no App.tsx para proteger essa página inteira,
+  // não precisamos envolvê-la novamente aqui
   return (
-    <ProtectedRoute>
-      <MoodTrackingProvider>
-        <MoodTrackingPageContent />
-      </MoodTrackingProvider>
-    </ProtectedRoute>
+    <MoodTrackingPageContent />
   );
 }

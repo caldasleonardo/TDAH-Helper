@@ -17,9 +17,11 @@ import ContentPage from "@/pages/content-page";
 import ProfilePage from "@/pages/profile-page";
 import CheckoutPage from "@/pages/checkout-page";
 
-// Agora importamos as páginas diretamente
+// Importação das páginas
 import PremiumPage from "./pages/premium-page";
 import SubscribePage from "./pages/subscribe-page";
+import PremiumContentPage from "./pages/premium-content-page";
+import PomodoroTool from "./pages/premium-tools/pomodoro-tool";
 
 function Router() {
   return (
@@ -34,6 +36,12 @@ function Router() {
       <ProtectedRoute path="/checkout/confirm/:quizResultId" component={CheckoutPage} />
       <ProtectedRoute path="/premium" component={PremiumPage} />
       <ProtectedRoute path="/subscribe" component={SubscribePage} />
+      
+      {/* Rotas para conteúdo premium */}
+      <ProtectedRoute path="/premium-content" component={PremiumContentPage} />
+      <ProtectedRoute path="/premium-content/:id" component={PremiumContentPage} />
+      <ProtectedRoute path="/premium-tools/pomodoro" component={PomodoroTool} />
+      
       <Route component={NotFound} />
     </Switch>
   );

@@ -98,34 +98,122 @@ export default function PremiumPage() {
         </TabsList>
         
         <TabsContent value="features" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {premiumFeatures.map((feature) => (
-              <Card key={feature.id} className={`h-full ${isPremium ? 'border-primary/30' : ''}`}>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    {feature.name}
-                    {isPremium && <CheckCircle className="h-4 w-4 text-primary ml-2" />}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-                <CardFooter>
-                  {isPremium ? (
-                    <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                      Disponível
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline">
-                      Premium
-                    </Badge>
-                  )}
-                </CardFooter>
-              </Card>
-            ))}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-6">Principais Recursos</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {premiumFeatures.map((feature) => (
+                <Card key={feature.id} className={`h-full ${isPremium ? 'border-primary/30 hover:shadow-md transition-shadow' : ''}`}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      {feature.name}
+                      {isPremium && <CheckCircle className="h-4 w-4 text-primary ml-2" />}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-sm">
+                      {feature.description}
+                    </CardDescription>
+                  </CardContent>
+                  <CardFooter className="flex justify-between items-center">
+                    {isPremium ? (
+                      <>
+                        <Badge className="bg-primary/10 text-primary border-primary/20">
+                          Disponível
+                        </Badge>
+                        {feature.id === 1 && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-primary"
+                            onClick={() => setLocation("/premium-content")}
+                          >
+                            Acessar <ArrowRight className="ml-1 h-4 w-4" />
+                          </Button>
+                        )}
+                      </>
+                    ) : (
+                      <Badge variant="outline">
+                        Premium
+                      </Badge>
+                    )}
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
           </div>
+          
+          {isPremium && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold mb-6">Conteúdo Exclusivo</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card 
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setLocation("/premium-content")}
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <BookIcon className="h-8 w-8 text-primary p-1 bg-primary/10 rounded-lg" />
+                      <Badge className="bg-primary/10 text-primary border-primary/20">
+                        Premium
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg">Conteúdo Premium</CardTitle>
+                    <CardDescription>
+                      Acesse artigos exclusivos, vídeos educativos e guias sobre TDAH
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Button variant="link" className="p-0 h-auto text-primary">
+                      Ver conteúdo <ArrowRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+                
+                <Card 
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setLocation("/premium-tools/pomodoro")}
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <TimerIcon className="h-8 w-8 text-primary p-1 bg-primary/10 rounded-lg" />
+                      <Badge className="bg-primary/10 text-primary border-primary/20">
+                        Premium
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg">Pomodoro para TDAH</CardTitle>
+                    <CardDescription>
+                      Ferramenta de foco adaptada para pessoas com TDAH
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Button variant="link" className="p-0 h-auto text-primary">
+                      Usar ferramenta <ArrowRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+                
+                <Card className="opacity-70 bg-neutral-50 dark:bg-neutral-900 hover:opacity-100 transition-opacity">
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <CalendarIcon className="h-8 w-8 text-primary p-1 bg-primary/10 rounded-lg" />
+                      <Badge variant="outline">
+                        Em breve
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg">Consultas Especializadas</CardTitle>
+                    <CardDescription>
+                      Agende consultas virtuais com especialistas em TDAH
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Button variant="link" className="p-0 h-auto text-neutral-500" disabled>
+                      Disponível em breve
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
           
           {!isPremium && (
             <div className="flex justify-center mt-8">

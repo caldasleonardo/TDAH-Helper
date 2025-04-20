@@ -43,8 +43,8 @@ export function BottomNav() {
       <div className="container mx-auto">
         <div className="flex items-center justify-around">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <a className="flex flex-col items-center">
+            <Link key={item.href} href={item.href} 
+              className="flex flex-col items-center">
                 <item.icon 
                   className={cn(
                     "h-6 w-6",
@@ -63,7 +63,6 @@ export function BottomNav() {
                 >
                   {item.label}
                 </span>
-              </a>
             </Link>
           ))}
         </div>

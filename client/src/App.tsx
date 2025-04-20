@@ -33,7 +33,7 @@ function Router() {
       <ProtectedRoute path="/checkout/:quizResultId" component={CheckoutPage} />
       <ProtectedRoute path="/checkout/confirm/:quizResultId" component={CheckoutPage} />
       <ProtectedRoute path="/premium" component={PremiumPage} />
-      <ProtectedRoute path="/premium/subscribe" component={SubscribePage} />
+      <ProtectedRoute path="/subscribe" component={SubscribePage} />
       <Route component={NotFound} />
     </Switch>
   );

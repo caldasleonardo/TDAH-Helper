@@ -205,7 +205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de assinatura premium
   
   // Criar uma assinatura - endpoint que inicia o fluxo de assinatura para funcionalidades premium
-  app.post("/api/subscriptions", async (req, res) => {
+  app.post("/api/subscription/create", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ message: "Autenticação necessária" });
@@ -246,9 +246,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Definir produtos com base no tipo de plano
+      // Esses IDs são fictícios por enquanto. Em produção, devem ser substituídos por IDs reais do Stripe
       const priceId = planType === 'yearly' 
-        ? 'price_yearly_subscription'  // ID do preço para assinatura anual
-        : 'price_monthly_subscription'; // ID do preço para assinatura mensal
+        ? 'price_1OvXXXXXXXXXXXXXXXXXXXXX'  // ID do preço para assinatura anual
+        : 'price_1OvXXXXXXXXXXXXXXXXXXXXX'; // ID do preço para assinatura mensal
       
       // Criar uma assinatura no Stripe
       const subscription = await stripe.subscriptions.create({
@@ -290,7 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Obter a assinatura atual do usuário
-  app.get("/api/subscriptions/current", async (req, res) => {
+  app.get("/api/subscription", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ message: "Autenticação necessária" });
@@ -314,7 +315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Cancelar assinatura
-  app.post("/api/subscriptions/cancel", async (req, res) => {
+  app.post("/api/subscription/cancel", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ message: "Autenticação necessária" });

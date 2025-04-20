@@ -1,219 +1,305 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useSubscription } from '@/hooks/use-subscription';
-import { useAuth } from '@/hooks/use-auth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft, Check } from 'lucide-react';
-import { Header } from '@/components/layout/header';
-import { BottomNav } from '@/components/layout/bottom-nav';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useSubscription } from "@/hooks/use-subscription";
+import { useAuth } from "@/hooks/use-auth";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useStripe, useElements, PaymentElement, Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { Loader2, CheckIcon, ArrowLeft, StarIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-// Make sure to call loadStripe outside of a component's render to avoid recreating the Stripe object
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-
-function SubscriptionForm() {
-  const [planType, setPlanType] = useState<'monthly' | 'yearly'>('monthly');
-  const [isLoading, setIsLoading] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const { createSubscriptionMutation } = useSubscription();
-  const [, navigate] = useLocation();
-
-  const handleStartSubscription = async () => {
-    setIsLoading(true);
-    try {
-      const result = await createSubscriptionMutation.mutateAsync({ planType });
-      if (result.clientSecret) {
-        setClientSecret(result.clientSecret);
-      }
-    } catch (error) {
-      console.error('Error creating subscription:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (clientSecret) {
-    return <CheckoutForm clientSecret={clientSecret} />;
-  }
-
-  return (
-    <div className="max-w-md mx-auto">
-      <Button
-        variant="ghost"
-        className="mb-4"
-        onClick={() => navigate('/premium')}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Voltar
-      </Button>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Escolha seu plano Premium</CardTitle>
-          <CardDescription>
-            Selecione o plano que melhor atende às suas necessidades
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RadioGroup value={planType} onValueChange={(value) => setPlanType(value as 'monthly' | 'yearly')}>
-            <div className="flex items-center space-x-2 space-y-0 mb-4 border rounded-lg p-4 hover:border-primary cursor-pointer" onClick={() => setPlanType('monthly')}>
-              <RadioGroupItem value="monthly" id="monthly" />
-              <div className="grid gap-1 flex-1">
-                <Label htmlFor="monthly" className="font-medium cursor-pointer">Plano Mensal</Label>
-                <div className="text-sm text-muted-foreground">R$ 19,90 por mês</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2 space-y-0 border rounded-lg p-4 hover:border-primary cursor-pointer" onClick={() => setPlanType('yearly')}>
-              <RadioGroupItem value="yearly" id="yearly" />
-              <div className="grid gap-1 flex-1">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="yearly" className="font-medium cursor-pointer">Plano Anual</Label>
-                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-green-800 dark:text-green-100">Melhor oferta</span>
-                </div>
-                <div className="text-sm text-muted-foreground">R$ 199,90 por ano (2 meses grátis)</div>
-              </div>
-            </div>
-          </RadioGroup>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => navigate('/premium')}>
-            Cancelar
-          </Button>
-          <Button onClick={handleStartSubscription} disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processando...
-              </>
-            ) : (
-              'Continuar'
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
-  );
+// Inicializar o Stripe
+if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+  throw new Error('Chave pública do Stripe não configurada');
 }
 
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+// Formulário de checkout para o pagamento da assinatura
 function CheckoutForm({ clientSecret }: { clientSecret: string }) {
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!stripe || !elements) {
       return;
     }
 
     setIsLoading(true);
-    setMessage(null);
 
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/premium`,
-      },
-    });
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.location.origin + "/premium", // Redireciona para a página premium após o pagamento
+        },
+      });
 
-    if (error) {
-      setMessage(error.message || 'Ocorreu um erro ao processar o pagamento.');
+      if (error) {
+        toast({
+          title: "Erro no pagamento",
+          description: error.message || "Ocorreu um erro ao processar o pagamento.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro no pagamento",
+        description: error.message || "Ocorreu um erro ao processar o pagamento.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      <Button
-        variant="ghost"
-        className="mb-4"
-        onClick={() => navigate('/premium')}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement />
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={!stripe || isLoading}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processando...
+          </>
+        ) : (
+          "Confirmar Pagamento"
+        )}
+      </Button>
+    </form>
+  );
+}
+
+// Componente principal da página de assinatura
+export default function SubscribePage() {
+  const { user, isLoading: isLoadingAuth } = useAuth();
+  const { createSubscriptionMutation, isPremium } = useSubscription();
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  const handleSubscribe = async () => {
+    try {
+      // Iniciar processo de assinatura com o plano selecionado
+      const result = await createSubscriptionMutation.mutateAsync({ planType: selectedPlan });
+      setClientSecret(result.clientSecret);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar assinatura",
+        description: error.message || "Não foi possível iniciar o processo de assinatura.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleGoBack = () => {
+    setLocation("/premium");
+  };
+
+  if (isLoadingAuth) {
+    return (
+      <div className="container mx-auto p-4 flex flex-col items-center justify-center min-h-[80vh]">
+        <Loader2 className="animate-spin h-12 w-12 text-primary mb-4" />
+        <p className="text-neutral-600 dark:text-neutral-400">Carregando...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    setLocation("/auth");
+    return null;
+  }
+
+  if (isPremium) {
+    setLocation("/premium");
+    return null;
+  }
+
+  return (
+    <div className="container mx-auto p-4 mb-20">
+      <Button 
+        variant="ghost" 
+        className="mb-6 pl-0" 
+        onClick={handleGoBack}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Voltar
       </Button>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Finalizar assinatura</CardTitle>
-          <CardDescription>
-            Insira seus dados de pagamento para completar a assinatura
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form id="payment-form" onSubmit={handleSubmit}>
-            <PaymentElement />
-            {message && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-                {message}
-              </div>
-            )}
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button type="button" variant="outline" onClick={() => navigate('/premium')}>
-            Cancelar
-          </Button>
-          <Button 
-            type="submit" 
-            form="payment-form" 
-            disabled={isLoading || !stripe || !elements}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processando...
-              </>
-            ) : (
-              'Pagar e Assinar'
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
-  );
-}
-
-export default function SubscribePage() {
-  const { isPremium } = useSubscription();
-  const [, navigate] = useLocation();
-
-  // Se já for premium, redireciona para a página de premium
-  useEffect(() => {
-    if (isPremium) {
-      navigate('/premium');
-    }
-  }, [isPremium, navigate]);
-
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Header />
       
-      <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold tracking-tight mb-6 text-center">Assinatura Premium</h1>
-          
-          {isPremium === null ? (
-            <div className="flex items-center justify-center min-h-[300px]">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Carregando" />
-            </div>
-          ) : (
-            <Elements stripe={stripePromise} options={{}} key="subscription-element">
-              <SubscriptionForm />
-            </Elements>
-          )}
+      <div className="flex flex-col items-center text-center mb-8">
+        <div className="mb-2 flex items-center">
+          <StarIcon className="text-primary h-8 w-8 mr-2" />
+          <h1 className="text-3xl font-bold">Assinar Premium</h1>
         </div>
-      </main>
-      
-      <BottomNav />
+        <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl">
+          Escolha o plano ideal para você e tenha acesso a todos os recursos premium do TDAH Focus.
+        </p>
+      </div>
+
+      {!clientSecret ? (
+        <div className="max-w-3xl mx-auto">
+          <Tabs 
+            defaultValue="monthly" 
+            className="mb-8"
+            value={selectedPlan}
+            onValueChange={(value) => setSelectedPlan(value as 'monthly' | 'yearly')}
+          >
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="monthly">Plano Mensal</TabsTrigger>
+              <TabsTrigger value="yearly">Plano Anual (20% de desconto)</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="monthly">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Plano Mensal</span>
+                    <span className="text-primary">R$ 19,90/mês</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Acesso a todos os recursos premium com renovação mensal
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                      <span>Relatórios detalhados de TDAH com insights avançados</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                      <span>Acesso a todos os artigos e conteúdos educacionais premium</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                      <span>Ferramentas de produtividade personalizadas para TDAH</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                      <span>Histórico completo de testes e acompanhamento de progresso</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                      <span>Cancele a qualquer momento</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => {
+                      setSelectedPlan('monthly');
+                      handleSubscribe();
+                    }}
+                    disabled={createSubscriptionMutation.isPending}
+                  >
+                    {createSubscriptionMutation.isPending && selectedPlan === 'monthly' ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      "Assinar Plano Mensal"
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="yearly">
+              <Card className="border-primary">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="flex items-center">
+                      <span>Plano Anual</span>
+                    </CardTitle>
+                    <div className="text-right">
+                      <div className="text-neutral-500 line-through text-sm">R$ 238,80/ano</div>
+                      <div className="text-primary font-bold">R$ 191,04/ano</div>
+                      <div className="text-sm text-neutral-600">Equivalente a R$ 15,92/mês</div>
+                    </div>
+                  </div>
+                  <CardDescription>
+                    Economize 20% com o plano anual
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                      <span>Todos os benefícios do plano mensal</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                      <span>Economia de 20% em comparação ao plano mensal</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                      <span>Prioridade no acesso a novos recursos</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                      <span>Preço garantido por 1 ano</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full" 
+                    variant="default"
+                    onClick={() => {
+                      setSelectedPlan('yearly');
+                      handleSubscribe();
+                    }}
+                    disabled={createSubscriptionMutation.isPending}
+                  >
+                    {createSubscriptionMutation.isPending && selectedPlan === 'yearly' ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      "Assinar Plano Anual"
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
+          
+          <div className="text-center text-sm text-neutral-500 dark:text-neutral-400">
+            Ao assinar, você concorda com nossos <a href="#" className="text-primary underline">Termos de Serviço</a> e <a href="#" className="text-primary underline">Política de Privacidade</a>.
+          </div>
+        </div>
+      ) : (
+        <div className="max-w-xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Finalize sua assinatura</CardTitle>
+              <CardDescription>
+                Insira os dados de pagamento para concluir sua assinatura {selectedPlan === 'monthly' ? 'mensal' : 'anual'}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <CheckoutForm clientSecret={clientSecret} />
+              </Elements>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

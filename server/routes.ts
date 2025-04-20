@@ -255,19 +255,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : process.env.STRIPE_PRICE_MONTHLY; // ID do preço para assinatura mensal
       
       // Criar uma assinatura no Stripe
-      // Criar uma assinatura no Stripe
-      // Primeiro, criamos a assinatura sem expandir payment_intent
+      // Vamos mudar a abordagem para simplificar
+      // Primeiro criar um PaymentIntent diretamente
+      const amount = planType === 'yearly' ? 9990 : 1290; // Valor em centavos (R$99,90 anual ou R$12,90 mensal)
+      
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: 'brl',
+        customer: customerId,
+        description: `Assinatura Premium ${planType === 'yearly' ? 'Anual' : 'Mensal'}`,
+        metadata: {
+          userId: user.id.toString(),
+          planType
+        }
+      });
+      
+      // Criar a assinatura normalmente, sem tentar expandir payment_intent
       const subscription = await stripe.subscriptions.create({
         customer: customerId,
         items: [{
           price: priceId,
         }],
         payment_behavior: 'default_incomplete',
-      });
-      
-      // Depois, buscamos a fatura separadamente
-      const invoice = await stripe.invoices.retrieve(subscription.latest_invoice as string, {
-        expand: ['payment_intent']
       });
       
       // Data de início e fim do período atual
@@ -303,20 +312,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isPremium: true 
       });
       
-      // Verificar se temos uma intent de pagamento na fatura
-      if (!invoice.payment_intent || typeof invoice.payment_intent === 'string') {
-        throw new Error('Erro ao obter dados de pagamento da assinatura');
-      }
-      
-      // Obter o clientSecret para o pagamento
-      const clientSecret = invoice.payment_intent.client_secret;
-      if (!clientSecret) {
-        throw new Error('Erro ao obter secret para pagamento da assinatura');
+      // Usamos o clientSecret do PaymentIntent que criamos anteriormente
+      if (!paymentIntent || !paymentIntent.client_secret) {
+        throw new Error('Erro ao obter cliente secret para pagamento');
       }
       
       res.json({
         subscription: savedSubscription,
-        clientSecret: clientSecret
+        clientSecret: paymentIntent.client_secret
       });
       
     } catch (error: any) {

@@ -30,6 +30,8 @@ export const quizResults = pgTable("quiz_results", {
   inattentionScore: integer("inattention_score"),
   hyperactivityScore: integer("hyperactivity_score"),
   impulsivityScore: integer("impulsivity_score"),
+  premiumPaid: boolean("premium_paid").default(false), // Indica se o relatório premium foi pago
+  paymentIntentId: text("payment_intent_id"), // ID da intenção de pagamento do Stripe
 });
 
 export const insertQuizResultSchema = createInsertSchema(quizResults)

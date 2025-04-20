@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -5,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./lib/theme-provider";
 import { AuthProvider } from "./hooks/use-auth";
+import { SubscriptionProvider } from "./hooks/use-subscription";
 import { ProtectedRoute } from "./lib/protected-route";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
@@ -14,6 +16,10 @@ import AuthPage from "@/pages/auth-page";
 import ContentPage from "@/pages/content-page";
 import ProfilePage from "@/pages/profile-page";
 import CheckoutPage from "@/pages/checkout-page";
+
+// Agora importamos as páginas diretamente
+import PremiumPage from "./pages/premium-page";
+import SubscribePage from "./pages/subscribe-page";
 
 function Router() {
   return (
@@ -26,6 +32,8 @@ function Router() {
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/checkout/:quizResultId" component={CheckoutPage} />
       <ProtectedRoute path="/checkout/confirm/:quizResultId" component={CheckoutPage} />
+      <ProtectedRoute path="/premium" component={PremiumPage} />
+      <ProtectedRoute path="/premium/subscribe" component={SubscribePage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -36,10 +44,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <SubscriptionProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </SubscriptionProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

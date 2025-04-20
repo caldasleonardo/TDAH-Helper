@@ -1,26 +1,13 @@
-import { createContext, useContext, ReactNode } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient, getQueryFn, apiRequest } from '@/lib/queryClient';
-import { useToast } from './use-toast';
-
-export type PremiumFeature = {
-  id: number;
-  name: string;
-  description: string;
-  isActive: boolean;
-};
-
-export type Subscription = {
-  id: number;
-  userId: number;
-  stripeSubscriptionId: string;
-  status: 'active' | 'canceled' | 'past_due' | 'incomplete';
-  planType: 'monthly' | 'yearly';
-  currentPeriodStart: string;
-  currentPeriodEnd: string;
-  createdAt: string;
-  canceledAt?: string;
-};
+import { createContext, ReactNode, useContext } from "react";
+import {
+  useQuery,
+  useMutation,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { apiRequest, queryClient } from "../lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import type { Subscription, PremiumFeature } from "@shared/schema";
 
 type SubscriptionContextType = {
   subscription: Subscription | null;
@@ -32,104 +19,99 @@ type SubscriptionContextType = {
     hasActiveSubscription: boolean;
   } | null;
   isLoadingUserFeatures: boolean;
-  createSubscriptionMutation: any;
-  cancelSubscriptionMutation: any;
+  createSubscriptionMutation: UseMutationResult<any, Error, { planType: 'monthly' | 'yearly' }>;
+  cancelSubscriptionMutation: UseMutationResult<any, Error, void>;
   isPremium: boolean;
 };
 
-const SubscriptionContext = createContext<SubscriptionContextType | null>(null);
+export const SubscriptionContext = createContext<SubscriptionContextType | null>(null);
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // Buscar assinatura atual
+  // Buscar assinatura atual do usuário
   const {
     data: subscription,
     isLoading: isLoadingSubscription,
-  } = useQuery<Subscription | null>({
-    queryKey: ['/api/subscriptions/current'],
-    queryFn: getQueryFn({ on401: 'returnNull' }),
-    retry: false,
+  } = useQuery({
+    queryKey: ['/api/subscription'],
+    enabled: !!user,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 
-  // Buscar funcionalidades premium disponíveis
+  // Buscar recursos premium disponíveis
   const {
     data: premiumFeatures = [],
     isLoading: isLoadingFeatures,
-  } = useQuery<PremiumFeature[]>({
+  } = useQuery({
     queryKey: ['/api/premium-features'],
-    queryFn: getQueryFn({ on401: 'returnNull' }),
     staleTime: 1000 * 60 * 60, // 1 hora
   });
 
-  // Buscar as funcionalidades premium do usuário
+  // Buscar recursos premium do usuário
   const {
     data: userPremiumFeatures,
     isLoading: isLoadingUserFeatures,
-  } = useQuery<{
-    features: PremiumFeature[];
-    hasActiveSubscription: boolean;
-  } | null>({
+  } = useQuery({
     queryKey: ['/api/user/premium-features'],
-    queryFn: getQueryFn({ on401: 'returnNull' }),
-    retry: false,
+    enabled: !!user,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 
-  // Verificar se o usuário é premium
-  const isPremium = !!userPremiumFeatures?.hasActiveSubscription;
-
-  // Mutação para criar uma assinatura
+  // Criar uma nova assinatura
   const createSubscriptionMutation = useMutation({
-    mutationFn: async ({ planType }: { planType: 'monthly' | 'yearly' }) => {
-      const res = await apiRequest('POST', '/api/subscriptions', { planType });
+    mutationFn: async (data: { planType: 'monthly' | 'yearly' }) => {
+      const res = await apiRequest("POST", "/api/subscription/create", data);
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions/current'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/subscription'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/premium-features'] });
       toast({
-        title: 'Assinatura iniciada',
-        description: 'Sua assinatura foi criada com sucesso.',
+        title: "Assinatura criada",
+        description: "Sua assinatura premium foi criada com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao criar assinatura',
-        description: error.message,
-        variant: 'destructive',
+        title: "Erro ao criar assinatura",
+        description: error.message || "Ocorreu um erro ao processar sua assinatura. Tente novamente.",
+        variant: "destructive",
       });
     },
   });
 
-  // Mutação para cancelar uma assinatura
+  // Cancelar assinatura
   const cancelSubscriptionMutation = useMutation({
-    mutationFn: async ({ subscriptionId }: { subscriptionId: number }) => {
-      const res = await apiRequest('POST', '/api/subscriptions/cancel', { subscriptionId });
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/subscription/cancel");
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions/current'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/subscription'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/premium-features'] });
       toast({
-        title: 'Assinatura cancelada',
-        description: 'Sua assinatura foi cancelada com sucesso.',
+        title: "Assinatura cancelada",
+        description: "Sua assinatura premium foi cancelada. Você ainda terá acesso aos recursos premium até o final do período atual.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao cancelar assinatura',
-        description: error.message,
-        variant: 'destructive',
+        title: "Erro ao cancelar assinatura",
+        description: error.message || "Ocorreu um erro ao cancelar sua assinatura. Tente novamente.",
+        variant: "destructive",
       });
     },
   });
+
+  // Determinar se o usuário é premium (tem uma assinatura ativa ou recursos premium)
+  const isPremium = !!userPremiumFeatures?.hasActiveSubscription;
 
   return (
     <SubscriptionContext.Provider
       value={{
-        subscription: subscription || null,
+        subscription,
         isLoadingSubscription,
         premiumFeatures,
         isLoadingFeatures,
@@ -147,10 +129,10 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
 export function useSubscription() {
   const context = useContext(SubscriptionContext);
-
   if (!context) {
-    throw new Error('useSubscription deve ser usado dentro de um SubscriptionProvider');
+    throw new Error("useSubscription must be used within a SubscriptionProvider");
   }
-
   return context;
 }
+
+export type { PremiumFeature };

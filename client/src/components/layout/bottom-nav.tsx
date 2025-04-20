@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { HomeIcon, BrainIcon, BookOpenIcon, UserIcon } from "lucide-react";
+import { HomeIcon, BrainIcon, BookOpenIcon, UserIcon, StarIcon } from "lucide-react";
 
 export function BottomNav() {
   const [location] = useLocation();
@@ -23,6 +23,12 @@ export function BottomNav() {
       label: "Conteúdo",
       icon: BookOpenIcon,
       active: location === "/content"
+    },
+    {
+      href: "/premium",
+      label: "Premium",
+      icon: StarIcon,
+      active: location.includes("/premium")
     },
     {
       href: "/profile",

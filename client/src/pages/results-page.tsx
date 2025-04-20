@@ -153,7 +153,7 @@ export default function ResultsPage() {
                           ? '30%' 
                           : category === 'moderate' 
                             ? '65%' 
-                            : '90%' 
+                            : '100%' 
                       }}
                     />
                   </div>

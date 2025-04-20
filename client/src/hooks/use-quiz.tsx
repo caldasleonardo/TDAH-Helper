@@ -139,28 +139,38 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       // Determinando categoria com base nos percentuais
       let category = "low";
       
+      // Verificando se o usuário selecionou "sempre" para a maioria das perguntas
+      const maxPossibleAnswerValue = 3; // valor da resposta "sempre"
+      const totalAnswers = Object.keys(answers).length;
+      const totalHighAnswers = Object.values(answers).filter(value => value === maxPossibleAnswerValue).length;
+      const highAnswersPercentage = (totalHighAnswers / totalAnswers) * 100;
+      
+      // Se 65% ou mais das respostas forem "sempre", automaticamente classificamos como alto
+      if (highAnswersPercentage >= 65) {
+        category = "high";
+      }
       // Se qualquer área tiver um percentual alto, a categoria será alta
-      if (inattentionPercentage >= 75 || hyperactivityPercentage >= 75 || impulsivityPercentage >= 75) {
+      else if (inattentionPercentage >= 70 || hyperactivityPercentage >= 70 || impulsivityPercentage >= 70) {
         category = "high";
       } 
-      // Se pelo menos duas áreas tiverem percentual moderado, a categoria será alta
+      // Se pelo menos duas áreas tiverem percentual moderado-alto, a categoria será alta
       else if (
-        (inattentionPercentage >= 65 && hyperactivityPercentage >= 65) || 
-        (inattentionPercentage >= 65 && impulsivityPercentage >= 65) || 
-        (hyperactivityPercentage >= 65 && impulsivityPercentage >= 65)
+        (inattentionPercentage >= 60 && hyperactivityPercentage >= 60) || 
+        (inattentionPercentage >= 60 && impulsivityPercentage >= 60) || 
+        (hyperactivityPercentage >= 60 && impulsivityPercentage >= 60)
       ) {
         category = "high";
       }
       // Se o percentual total for alto, a categoria será alta
-      else if (scorePercentage >= 65) {
+      else if (scorePercentage >= 60) {
         category = "high";
       }
       // Categoria moderada
       else if (
-        inattentionPercentage >= 50 || 
-        hyperactivityPercentage >= 50 || 
-        impulsivityPercentage >= 50 || 
-        scorePercentage >= 40
+        inattentionPercentage >= 45 || 
+        hyperactivityPercentage >= 45 || 
+        impulsivityPercentage >= 45 || 
+        scorePercentage >= 35
       ) {
         category = "moderate";
       }

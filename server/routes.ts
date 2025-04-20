@@ -279,6 +279,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentPeriodEnd
       });
       
+      // Atribuir recursos premium ao usuário
+      // Obter todos os recursos premium ativos
+      const premiumFeatures = await storage.getActivePremiumFeatures();
+      
+      // Data de expiração dos recursos: mesma data do fim da assinatura
+      const featuresExpirationDate = currentPeriodEnd;
+      
+      // Adicionar cada recurso premium ao usuário
+      for (const feature of premiumFeatures) {
+        await storage.addUserPremiumFeature(user.id, feature.id, featuresExpirationDate);
+      }
+      
+      // Atualizar o perfil do usuário para indicar que tem status premium
+      await storage.updateUserStripeInfo(user.id, { 
+        stripeCustomerId: customerId,
+        isPremium: true 
+      });
+      
       // Responder com os detalhes da assinatura e o clientSecret para pagamento
       // Acessar payment_intent com verificação de tipo
       if (!subscription.latest_invoice || typeof subscription.latest_invoice === 'string') {
@@ -358,9 +376,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         new Date()
       );
       
+      // Nota: Não removemos os recursos premium imediatamente
+      // O usuário continuará tendo acesso até o final do período já pago
+      // A data de expiração dos recursos premium já foi definida como currentPeriodEnd
+      
+      // Atualizamos o campo isPremium no usuário para false após o final do período
+      // Isso acontecerá no futuro, após a data de expiração da assinatura
+      // Por enquanto, o usuário ainda é premium até o final do período pago
+      
       res.json({
         success: true,
-        message: "Assinatura cancelada com sucesso",
+        message: "Assinatura cancelada com sucesso. Você continuará tendo acesso aos recursos premium até o final do período atual.",
         subscription: updatedSubscription
       });
       

@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, StarIcon, Shield, Calendar, ArrowRight, Loader2 } from "lucide-react";
+import { 
+  CheckCircle, 
+  StarIcon, 
+  Shield, 
+  Calendar, 
+  ArrowRight, 
+  Loader2, 
+  BookIcon, 
+  TimerIcon,
+  CalendarIcon
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 

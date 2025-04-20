@@ -1,8 +1,11 @@
 import { users, type User, type InsertUser, quizResults, type QuizResult, type InsertQuizResult } from "@shared/schema";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
 import session from "express-session";
+import { db } from "./db";
+import { pool } from "./db";
+import { eq, desc } from "drizzle-orm";
 
-const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   // User management
@@ -19,74 +22,76 @@ export interface IStorage {
   sessionStore: any; // Usando "any" para evitar erros de tipo com session.SessionStore
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private quizResults: Map<number, QuizResult>;
-  currentUserId: number;
-  currentQuizResultId: number;
+export class DatabaseStorage implements IStorage {
   sessionStore: any;
 
   constructor() {
-    this.users = new Map();
-    this.quizResults = new Map();
-    this.currentUserId = 1;
-    this.currentQuizResultId = 1;
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000, // 24 hours
+    this.sessionStore = new PostgresSessionStore({ 
+      pool,
+      createTableIfMissing: true
     });
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const createdAt = new Date();
-    // Garantir campos necessários
-    const user: User = { 
-      ...insertUser, 
-      id, 
-      createdAt,
+    // Garantir que o email seja null se não fornecido
+    const userWithDefaults = {
+      ...insertUser,
       email: insertUser.email || null
     };
-    this.users.set(id, user);
+    
+    const [user] = await db
+      .insert(users)
+      .values(userWithDefaults)
+      .returning();
+    
     return user;
   }
 
   async saveQuizResult(insertResult: InsertQuizResult): Promise<QuizResult> {
-    const id = this.currentQuizResultId++;
-    // Garantir que valores obrigatórios estejam presentes
-    const result: QuizResult = { 
-      ...insertResult, 
-      id,
-      // Garantir que a data seja preenchida se não for informada
+    // Garantir que valores opcionais sejam null se não informados
+    const resultWithDefaults = {
+      ...insertResult,
       date: insertResult.date || new Date(),
-      // Garantir que campos opcionais sejam null se não forem informados
       userId: insertResult.userId || null,
       inattentionScore: insertResult.inattentionScore || null,
       hyperactivityScore: insertResult.hyperactivityScore || null,
       impulsivityScore: insertResult.impulsivityScore || null
     };
-    this.quizResults.set(id, result);
+    
+    const [result] = await db
+      .insert(quizResults)
+      .values(resultWithDefaults)
+      .returning();
+    
     return result;
   }
 
   async getUserQuizResults(userId: number): Promise<QuizResult[]> {
-    return Array.from(this.quizResults.values()).filter(
-      (result) => result.userId === userId
-    );
+    return await db
+      .select()
+      .from(quizResults)
+      .where(eq(quizResults.userId, userId))
+      .orderBy(desc(quizResults.date));
   }
 
   async getQuizResultById(id: number): Promise<QuizResult | undefined> {
-    return this.quizResults.get(id);
+    const [result] = await db
+      .select()
+      .from(quizResults)
+      .where(eq(quizResults.id, id));
+    
+    return result || undefined;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

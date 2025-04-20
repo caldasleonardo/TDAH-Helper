@@ -15,6 +15,20 @@ export default function ProfilePage() {
   const { data: quizResults = [] } = useQuery({
     queryKey: ["/api/quiz-results"],
     enabled: !!user,
+    select: (data) => {
+      // Garante que as datas são formatadas corretamente
+      return data.map((result: any) => {
+        try {
+          // Se answers for uma string JSON, converteremos para um objeto
+          if (typeof result.answers === 'string') {
+            result.answers = JSON.parse(result.answers);
+          }
+        } catch (e) {
+          console.error("Error parsing answers:", e);
+        }
+        return result;
+      });
+    }
   });
   
   const formatDate = (dateString: string) => {

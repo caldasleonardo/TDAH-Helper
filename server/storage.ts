@@ -16,7 +16,7 @@ export interface IStorage {
   getQuizResultById(id: number): Promise<QuizResult | undefined>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Usando "any" para evitar erros de tipo com session.SessionStore
 }
 
 export class MemStorage implements IStorage {
@@ -24,7 +24,7 @@ export class MemStorage implements IStorage {
   private quizResults: Map<number, QuizResult>;
   currentUserId: number;
   currentQuizResultId: number;
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 
   constructor() {
     this.users = new Map();
@@ -49,14 +49,31 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
     const createdAt = new Date();
-    const user: User = { ...insertUser, id, createdAt };
+    // Garantir campos necessários
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt,
+      email: insertUser.email || null
+    };
     this.users.set(id, user);
     return user;
   }
 
   async saveQuizResult(insertResult: InsertQuizResult): Promise<QuizResult> {
     const id = this.currentQuizResultId++;
-    const result: QuizResult = { ...insertResult, id };
+    // Garantir que valores obrigatórios estejam presentes
+    const result: QuizResult = { 
+      ...insertResult, 
+      id,
+      // Garantir que a data seja preenchida se não for informada
+      date: insertResult.date || new Date(),
+      // Garantir que campos opcionais sejam null se não forem informados
+      userId: insertResult.userId || null,
+      inattentionScore: insertResult.inattentionScore || null,
+      hyperactivityScore: insertResult.hyperactivityScore || null,
+      impulsivityScore: insertResult.impulsivityScore || null
+    };
     this.quizResults.set(id, result);
     return result;
   }

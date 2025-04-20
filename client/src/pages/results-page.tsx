@@ -16,6 +16,20 @@ export default function ResultsPage() {
   const { data: result, isLoading, error } = useQuery({
     queryKey: [`/api/quiz-results/${resultId}`],
     enabled: !!resultId,
+    select: (data) => {
+      // Parse the answers JSON string to object if it exists
+      if (data && typeof data.answers === 'string') {
+        try {
+          return {
+            ...data,
+            answers: JSON.parse(data.answers)
+          };
+        } catch (e) {
+          console.error("Error parsing answers:", e);
+        }
+      }
+      return data;
+    }
   });
   
   if (isLoading) {

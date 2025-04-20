@@ -30,9 +30,14 @@ export const quizResults = pgTable("quiz_results", {
   impulsivityScore: integer("impulsivity_score"),
 });
 
-export const insertQuizResultSchema = createInsertSchema(quizResults).omit({
-  id: true,
-});
+export const insertQuizResultSchema = createInsertSchema(quizResults)
+  .omit({
+    id: true,
+  })
+  .extend({
+    // Garantir que answers seja aceito como string JSON
+    answers: z.string(),
+  });
 
 // Quiz schema (stores quiz questions and options)
 export const quizQuestions = pgTable("quiz_questions", {

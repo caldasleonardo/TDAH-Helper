@@ -11,7 +11,10 @@ export interface IStorage {
   // User management
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User>;
   
   // Quiz results management
   saveQuizResult(result: InsertQuizResult): Promise<QuizResult>;
@@ -41,12 +44,23 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+  
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
+    return user || undefined;
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     // Garantir que o email seja null se não fornecido
     const userWithDefaults = {
       ...insertUser,
-      email: insertUser.email || null
+      email: insertUser.email || null,
+      firebaseUid: insertUser.firebaseUid || null
     };
     
     const [user] = await db
@@ -55,6 +69,16 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return user;
+  }
+  
+  async updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ firebaseUid })
+      .where(eq(users.id, userId))
+      .returning();
+      
+    return updatedUser;
   }
 
   async saveQuizResult(insertResult: InsertQuizResult): Promise<QuizResult> {

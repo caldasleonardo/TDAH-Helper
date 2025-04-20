@@ -22,8 +22,33 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+
+  // Função para obter mensagens de erro mais amigáveis
+  const getErrorMessage = (error: any): string => {
+    console.log("Erro Stripe:", error);
+    
+    switch (error.code) {
+      case 'card_declined':
+        return 'O cartão foi recusado. Por favor, verifique as informações ou tente outro método de pagamento.';
+      case 'expired_card':
+        return 'O cartão está expirado. Por favor, tente outro cartão.';
+      case 'incorrect_number':
+        return 'O número do cartão está incorreto. Por favor, verifique e tente novamente.';
+      case 'incomplete_number':
+        return 'Número do cartão incompleto. Por favor, preencha todos os dados do cartão.';
+      case 'incomplete_expiry':
+        return 'Data de expiração incompleta. Por favor, verifique e tente novamente.';
+      case 'incomplete_cvc':
+        return 'Código de segurança (CVC) incompleto. Por favor, verifique e tente novamente.';
+      case 'resource_missing':
+        return 'Tivemos um problema com a configuração da assinatura. Estamos trabalhando para resolver.';
+      default:
+        return error.message || 'Ocorreu um erro ao processar o pagamento.';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +58,7 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
     }
 
     setIsLoading(true);
+    setErrorMessage(null);
 
     try {
       const { error } = await stripe.confirmPayment({
@@ -43,16 +69,21 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
       });
 
       if (error) {
+        const message = getErrorMessage(error);
+        setErrorMessage(message);
         toast({
           title: "Erro no pagamento",
-          description: error.message || "Ocorreu um erro ao processar o pagamento.",
+          description: message,
           variant: "destructive",
         });
       }
     } catch (error: any) {
+      console.error("Erro na assinatura:", error);
+      const message = error.message || "Ocorreu um erro ao processar o pagamento.";
+      setErrorMessage(message);
       toast({
         title: "Erro no pagamento",
-        description: error.message || "Ocorreu um erro ao processar o pagamento.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -63,6 +94,14 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
+      
+      {errorMessage && (
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-3 rounded-md text-sm text-red-600 dark:text-red-400">
+          <p className="font-medium mb-1">Erro no pagamento</p>
+          <p>{errorMessage}</p>
+        </div>
+      )}
+      
       <Button 
         type="submit" 
         className="w-full" 
@@ -90,15 +129,22 @@ export default function SubscribePage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
+  const [errorSubscription, setErrorSubscription] = useState<string | null>(null);
+  
   const handleSubscribe = async () => {
+    setErrorSubscription(null);
+    
     try {
       // Iniciar processo de assinatura com o plano selecionado
       const result = await createSubscriptionMutation.mutateAsync({ planType: selectedPlan });
       setClientSecret(result.clientSecret);
     } catch (error: any) {
+      console.error("Erro ao criar assinatura:", error);
+      const errorMessage = error.message || "Não foi possível iniciar o processo de assinatura.";
+      setErrorSubscription(errorMessage);
       toast({
         title: "Erro ao criar assinatura",
-        description: error.message || "Não foi possível iniciar o processo de assinatura.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -278,6 +324,14 @@ export default function SubscribePage() {
               </Card>
             </TabsContent>
           </Tabs>
+          
+          {errorSubscription && (
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 rounded-md mb-4 text-sm text-red-600 dark:text-red-400">
+              <p className="font-medium mb-1">Erro ao criar assinatura</p>
+              <p>{errorSubscription}</p>
+              <p className="mt-2 text-xs">Se o problema persistir, entre em contato com nosso suporte.</p>
+            </div>
+          )}
           
           <div className="text-center text-sm text-neutral-500 dark:text-neutral-400">
             Ao assinar, você concorda com nossos <a href="#" className="text-primary underline">Termos de Serviço</a> e <a href="#" className="text-primary underline">Política de Privacidade</a>.

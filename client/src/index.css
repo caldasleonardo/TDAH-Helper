@@ -5,9 +5,47 @@
 @layer base {
   * {
     @apply border-border;
+    scrollbar-width: auto;
+    scrollbar-color: hsl(var(--primary)) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    display: none;
+  }
+
+  *:hover::-webkit-scrollbar {
+    display: block;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground));
+    border-radius: 8px;
+    border: 2px solid transparent;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-background text-foreground overflow-x-hidden;
+  }
+
+  /* Aplicar overflow auto em vez de scroll para contêineres com rolagem */
+  .overflow-scroll, 
+  .overflow-y-scroll, 
+  .overflow-x-scroll {
+    @apply overflow-auto overflow-y-auto overflow-x-auto;
+  }
+
+  /* Classe auxiliar para ocultar barras de rolagem até hover */
+  .scrollbar-hide-until-hover {
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide-until-hover:hover {
+    scrollbar-width: auto;
   }
 }

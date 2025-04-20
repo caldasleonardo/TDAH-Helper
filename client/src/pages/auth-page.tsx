@@ -1,18 +1,27 @@
 import { useState } from "react";
 import { Header } from "@/components/layout/header";
 import { BottomNav } from "@/components/layout/bottom-nav";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
-import { BrainIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { BrainIcon, EyeIcon, EyeOffIcon, LockIcon } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -193,6 +202,58 @@ export default function AuthPage() {
                       >
                         {loginMutation.isPending ? "Entrando..." : "Entrar"}
                       </Button>
+                      
+                      <div className="text-center">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              type="button" 
+                              variant="link" 
+                              className="text-sm text-primary dark:text-primary p-0 h-auto font-medium"
+                            >
+                              Esqueceu a senha ou nome de usuário?
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center">
+                                <LockIcon className="h-5 w-5 mr-2 text-primary" />
+                                Recuperação de Conta
+                              </DialogTitle>
+                              <DialogDescription>
+                                Digite o email associado à sua conta para receber instruções de recuperação.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4">
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="recovery-email">Email</Label>
+                                  <Input
+                                    id="recovery-email"
+                                    type="email"
+                                    placeholder="Seu email cadastrado"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button 
+                                type="button" 
+                                onClick={() => {
+                                  toast({
+                                    title: "Email enviado",
+                                    description: "Se o email estiver cadastrado, você receberá instruções para recuperar sua conta.",
+                                  });
+                                  // Fechar o diálogo após clicar (poderia ser implementado com state)
+                                  document.querySelector("[data-state='open'] button[data-close-dialog]")?.click();
+                                }}
+                              >
+                                Enviar Instruções
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                       
                       <div className="relative flex items-center justify-center mt-6">
                         <hr className="flex-grow border-neutral-200 dark:border-neutral-700" />

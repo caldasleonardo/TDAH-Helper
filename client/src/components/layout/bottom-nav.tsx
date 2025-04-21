@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { HomeIcon, BrainIcon, BookOpenIcon, UserIcon, StarIcon, TimerIcon, BookIcon, SparklesIcon, SmileIcon } from "lucide-react";
+import { HomeIcon, BrainIcon, BookOpenIcon, UserIcon, StarIcon, TimerIcon, BookIcon, SparklesIcon, SmileIcon, Trophy } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Badge } from "@/components/ui/badge";
 
@@ -57,6 +57,12 @@ export function BottomNav() {
       label: "Humor",
       icon: SmileIcon,
       active: location === "/mood-tracking"
+    },
+    {
+      href: "/achievements",
+      label: "Conquistas",
+      icon: Trophy,
+      active: location === "/achievements"
     },
     {
       href: "/premium",

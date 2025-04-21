@@ -23,6 +23,7 @@ import ProfilePage from "@/pages/profile-page";
 import CheckoutPage from "@/pages/checkout-page";
 import DetailedReportPage from "@/pages/detailed-report-page";
 import MoodTrackingPage from "@/pages/mood-tracking-page";
+import AchievementsPage from "@/pages/achievements-page";
 
 // Importação das páginas
 import PremiumPage from "./pages/premium-page";
@@ -51,6 +52,7 @@ function Router() {
       <ProtectedRoute path="/premium-content/:id" component={PremiumContentPage} />
       <ProtectedRoute path="/premium-tools/pomodoro" component={PomodoroTool} />
       <ProtectedRoute path="/mood-tracking" component={MoodTrackingPage} />
+      <ProtectedRoute path="/achievements" component={AchievementsPage} />
       
       <Route component={NotFound} />
     </Switch>

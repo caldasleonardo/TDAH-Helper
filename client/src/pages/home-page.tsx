@@ -127,7 +127,7 @@ export default function HomePage() {
   }, []);
   
   return (
-    <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900 overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900 w-full overflow-hidden">
       <Header />
       
       {/* Background com partículas animadas */}
@@ -137,13 +137,13 @@ export default function HomePage() {
         ))}
       </div>
       
-      <main className="flex-grow relative z-10 pb-20 pt-3 max-w-lg mx-auto">
+      <main className="flex-grow relative z-10 pb-20 pt-3 max-w-[95%] w-full mx-auto">
         {/* Card principal em estilo app */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white/90 dark:bg-neutral-800/90 backdrop-blur-lg rounded-3xl mx-4 overflow-hidden shadow-xl"
+          className="bg-white/90 dark:bg-neutral-800/90 backdrop-blur-lg rounded-3xl mx-auto w-full overflow-hidden shadow-xl"
         >
           {/* Conteúdo principal */}
           <div className="px-6 py-6">
@@ -237,7 +237,7 @@ export default function HomePage() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-                    className="bg-neutral-50 dark:bg-neutral-700 p-4 rounded-xl shadow-sm min-w-[280px] flex-shrink-0"
+                    className="bg-neutral-50 dark:bg-neutral-700 p-4 rounded-xl shadow-sm min-w-[240px] w-[90%] flex-shrink-0"
                   >
                     <div className="flex items-center mb-2">
                       <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center mr-2 text-xs font-bold text-primary">
@@ -263,7 +263,7 @@ export default function HomePage() {
           <h3 className="font-semibold mb-3 text-neutral-800 dark:text-white pl-1">Recursos Premium</h3>
           
           <div className="overflow-x-auto pb-4 px-2 flex space-x-4 scrollbar-hide-until-hover">
-            <div className="bg-gradient-to-br from-orange-500/10 to-pink-500/10 dark:from-orange-500/20 dark:to-pink-500/20 p-4 rounded-2xl shadow-sm min-w-[200px] flex-shrink-0">
+            <div className="bg-gradient-to-br from-orange-500/10 to-pink-500/10 dark:from-orange-500/20 dark:to-pink-500/20 p-4 rounded-2xl shadow-sm min-w-[180px] w-[80%] flex-shrink-0">
               <div className="h-10 w-10 flex items-center justify-center bg-orange-500/20 rounded-xl mb-2">
                 <BarChart3Icon className="h-5 w-5 text-orange-500" />
               </div>
@@ -271,7 +271,7 @@ export default function HomePage() {
               <p className="text-xs text-neutral-600 dark:text-neutral-400">Gráficos e métricas avançadas sobre seus padrões</p>
             </div>
             
-            <div className="bg-gradient-to-br from-green-500/10 to-teal-500/10 dark:from-green-500/20 dark:to-teal-500/20 p-4 rounded-2xl shadow-sm min-w-[200px] flex-shrink-0">
+            <div className="bg-gradient-to-br from-green-500/10 to-teal-500/10 dark:from-green-500/20 dark:to-teal-500/20 p-4 rounded-2xl shadow-sm min-w-[180px] w-[80%] flex-shrink-0">
               <div className="h-10 w-10 flex items-center justify-center bg-green-500/20 rounded-xl mb-2">
                 <UserIcon className="h-5 w-5 text-green-500" />
               </div>
@@ -279,7 +279,7 @@ export default function HomePage() {
               <p className="text-xs text-neutral-600 dark:text-neutral-400">Acesso a especialistas para acompanhamento</p>
             </div>
             
-            <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 p-4 rounded-2xl shadow-sm min-w-[200px] flex-shrink-0">
+            <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 p-4 rounded-2xl shadow-sm min-w-[180px] w-[80%] flex-shrink-0">
               <div className="h-10 w-10 flex items-center justify-center bg-blue-500/20 rounded-xl mb-2">
                 <PlayCircleIcon className="h-5 w-5 text-blue-500" />
               </div>

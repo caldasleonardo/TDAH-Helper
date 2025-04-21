@@ -30,7 +30,12 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground overflow-x-hidden max-w-[100vw];
+    @apply font-sans antialiased bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden !important;
+    width: 100vw;
+    position: relative;
   }
 
   /* Aplicar overflow auto em vez de scroll para contêineres com rolagem */
@@ -49,5 +54,23 @@
   
   .scrollbar-hide-until-hover:hover {
     scrollbar-width: auto;
+  }
+  
+  /* Media queries para dispositivos móveis */
+  @media (max-width: 640px) {
+    body, html {
+      overflow-x: hidden !important;
+      width: 100vw !important;
+      position: relative !important;
+    }
+    
+    .scrollbar-hide-until-hover {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    .scrollbar-hide-until-hover::-webkit-scrollbar {
+      display: none;
+    }
   }
 }

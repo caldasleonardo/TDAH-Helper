@@ -9,7 +9,10 @@ import {
   content, type Content, type InsertContent,
   media, type Media, type InsertMedia,
   auditLog, type AuditLog, type InsertAuditLog,
-  moodTracking, type MoodTracking, type InsertMoodTracking
+  moodTracking, type MoodTracking, type InsertMoodTracking,
+  achievements, type Achievement, type InsertAchievement,
+  userAchievements, type UserAchievement, type InsertUserAchievement,
+  userLevels, type UserLevel, type InsertUserLevel
 } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
@@ -99,6 +102,31 @@ export interface IStorage {
     toDate?: Date,
     limit?: number
   }): Promise<AuditLog[]>;
+  
+  // Achievements management
+  getAllAchievements(): Promise<Achievement[]>;
+  getAchievementsByCategory(category: string): Promise<Achievement[]>;
+  getAchievementById(id: number): Promise<Achievement | undefined>;
+  getUserAchievements(userId: number): Promise<{
+    achievement: Achievement;
+    progress: number;
+    completed: boolean;
+    completedAt?: Date;
+  }[]>;
+  createUserAchievement(data: InsertUserAchievement): Promise<UserAchievement>;
+  updateUserAchievementProgress(userId: number, achievementId: number, progress: number): Promise<UserAchievement>;
+  completeUserAchievement(userId: number, achievementId: number): Promise<UserAchievement>;
+  
+  // User Levels management
+  getUserLevel(userId: number): Promise<UserLevel | undefined>;
+  createUserLevel(data: InsertUserLevel): Promise<UserLevel>;
+  updateUserLevel(userId: number, updates: Partial<InsertUserLevel>): Promise<UserLevel>;
+  addUserXP(userId: number, xpPoints: number): Promise<{
+    userLevel: UserLevel;
+    leveledUp: boolean;
+    previousLevel?: number;
+  }>;
+  updateLoginStreak(userId: number): Promise<UserLevel>;
   
   // Session store
   sessionStore: any; // Usando "any" para evitar erros de tipo com session.SessionStore

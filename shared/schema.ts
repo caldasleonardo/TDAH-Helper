@@ -227,3 +227,70 @@ export const insertMoodTrackingSchema = createInsertSchema(moodTracking).omit({
 
 export type MoodTracking = typeof moodTracking.$inferSelect;
 export type InsertMoodTracking = z.infer<typeof insertMoodTrackingSchema>;
+
+// Achievements (Conquistas)
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: varchar("category", { length: 50 }).notNull(), // mood_tracking, quiz_completion, content_reading, login_streak, practice
+  icon: varchar("icon", { length: 50 }).notNull(), // Nome do ícone do Lucide React
+  iconColor: varchar("icon_color", { length: 20 }).notNull(), // Cor do ícone em formato hex
+  badgeImage: text("badge_image"), // URL da imagem opcional do distintivo
+  requiredCount: integer("required_count").notNull(), // Quantidade necessária para desbloquear
+  xpPoints: integer("xp_points").notNull(), // Pontos de experiência ganhos
+  levelRequired: integer("level_required").default(0), // Nível mínimo para desbloquear
+  isHidden: boolean("is_hidden").default(false), // Se é uma conquista surpresa
+  active: boolean("active").default(true), // Se a conquista está ativa no sistema
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAchievementSchema = createInsertSchema(achievements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
+
+// User Achievements (Conquistas do Usuário)
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  achievementId: integer("achievement_id").notNull().references(() => achievements.id),
+  progress: integer("progress").default(0).notNull(), // Progresso atual
+  completed: boolean("completed").default(false).notNull(), // Se a conquista foi completada
+  completedAt: timestamp("completed_at"), // Quando a conquista foi completada
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserAchievementSchema = createInsertSchema(userAchievements).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
+
+// User Levels (Níveis do Usuário)
+export const userLevels = pgTable("user_levels", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id).unique(),
+  level: integer("level").default(1).notNull(),
+  xpPoints: integer("xp_points").default(0).notNull(),
+  xpToNextLevel: integer("xp_to_next_level").default(100).notNull(),
+  loginStreak: integer("login_streak").default(0).notNull(),
+  lastLoginDate: timestamp("last_login_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserLevelSchema = createInsertSchema(userLevels).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type UserLevel = typeof userLevels.$inferSelect;
+export type InsertUserLevel = z.infer<typeof insertUserLevelSchema>;

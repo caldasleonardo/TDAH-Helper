@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { CalmingTheme, calmingThemes } from "./ThemeSelector";
+import { CalmingTheme, calmingThemes } from "./theme-data";
 
 type CalmingThemeContextType = {
   theme: CalmingTheme;
@@ -10,26 +10,26 @@ const CalmingThemeContext = createContext<CalmingThemeContextType | undefined>(u
 
 export function CalmingThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<CalmingTheme>(() => {
-    // Inicializa com o tema padrão
+    // Verificar se há um tema salvo
+    try {
+      const savedTheme = localStorage.getItem("calming-theme");
+      if (savedTheme) {
+        return JSON.parse(savedTheme);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar tema:", error);
+    }
+    // Inicializa com o tema padrão se não houver tema salvo ou ocorrer um erro
     return calmingThemes[0];
   });
 
-  // Carrega o tema do localStorage quando o componente monta
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("calming-theme");
-    if (savedTheme) {
-      try {
-        const parsedTheme = JSON.parse(savedTheme);
-        setTheme(parsedTheme);
-      } catch (error) {
-        console.error("Erro ao carregar tema:", error);
-      }
-    }
-  }, []);
-
   // Salva o tema no localStorage quando ele muda
   useEffect(() => {
-    localStorage.setItem("calming-theme", JSON.stringify(theme));
+    try {
+      localStorage.setItem("calming-theme", JSON.stringify(theme));
+    } catch (error) {
+      console.error("Erro ao salvar tema:", error);
+    }
   }, [theme]);
 
   return (

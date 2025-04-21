@@ -18,67 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useCalmingTheme } from "./CalmingThemeProvider";
-
-// Definição de temas calmantes
-export type CalmingTheme = {
-  id: string;
-  name: string;
-  gradientFrom: string;
-  gradientTo: string;
-  description: string;
-  particlesColor: string[];
-};
-
-export const calmingThemes: CalmingTheme[] = [
-  {
-    id: "default",
-    name: "Padrão",
-    gradientFrom: "bg-neutral-50",
-    gradientTo: "bg-neutral-50",
-    description: "Tema neutro e minimalista, ideal para concentração",
-    particlesColor: ["primary", "purple", "indigo", "blue"],
-  },
-  {
-    id: "lavender",
-    name: "Lavanda",
-    gradientFrom: "from-purple-50",
-    gradientTo: "to-indigo-50",
-    description: "Tons de lavanda para acalmar a mente",
-    particlesColor: ["purple", "indigo", "violet", "blue"],
-  },
-  {
-    id: "ocean",
-    name: "Oceano",
-    gradientFrom: "from-blue-50",
-    gradientTo: "to-cyan-50",
-    description: "Azuis oceânicos para tranquilidade",
-    particlesColor: ["blue", "cyan", "teal", "sky"],
-  },
-  {
-    id: "sunset",
-    name: "Pôr do Sol",
-    gradientFrom: "from-amber-50",
-    gradientTo: "to-orange-50",
-    description: "Tons quentes e suaves para relaxamento",
-    particlesColor: ["amber", "orange", "yellow", "red"],
-  },
-  {
-    id: "forest",
-    name: "Floresta",
-    gradientFrom: "from-green-50",
-    gradientTo: "to-emerald-50",
-    description: "Verdes que trazem sensação de natureza",
-    particlesColor: ["green", "emerald", "lime", "teal"],
-  },
-  {
-    id: "pastel",
-    name: "Tons Pastel",
-    gradientFrom: "from-pink-50",
-    gradientTo: "to-purple-50",
-    description: "Mistura suave de tons pastel para relaxar",
-    particlesColor: ["pink", "purple", "blue", "indigo"],
-  },
-];
+import { CalmingTheme, calmingThemes } from "./theme-data";
 
 // Hook para gerenciar o tema está agora em CalmingThemeProvider.tsx
 
@@ -94,18 +34,77 @@ const ThemePreview = ({ theme }: { theme: CalmingTheme }) => {
       )}
     >
       <div className="absolute inset-0 opacity-20">
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className={`absolute rounded-full bg-${theme.particlesColor[i % theme.particlesColor.length]}-400/30`}
-            style={{
-              width: `${Math.random() * 10 + 5}px`,
-              height: `${Math.random() * 10 + 5}px`,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-            }}
-          />
-        ))}
+        {[...Array(5)].map((_, i) => {
+          const colorKey = theme.particlesColor[i % theme.particlesColor.length];
+          let bgColorClass = '';
+          
+          // Mapear cores para classes Tailwind
+          switch (colorKey) {
+            case 'primary':
+              bgColorClass = 'bg-primary';
+              break;
+            case 'purple':
+              bgColorClass = 'bg-purple-400';
+              break;
+            case 'indigo':
+              bgColorClass = 'bg-indigo-400';
+              break;
+            case 'blue':
+              bgColorClass = 'bg-blue-400';
+              break;
+            case 'cyan':
+              bgColorClass = 'bg-cyan-400';
+              break;
+            case 'teal':
+              bgColorClass = 'bg-teal-400';
+              break;
+            case 'sky':
+              bgColorClass = 'bg-sky-400';
+              break;
+            case 'amber':
+              bgColorClass = 'bg-amber-400';
+              break;
+            case 'orange':
+              bgColorClass = 'bg-orange-400';
+              break;
+            case 'yellow':
+              bgColorClass = 'bg-yellow-400';
+              break;
+            case 'red':
+              bgColorClass = 'bg-red-400';
+              break;
+            case 'green':
+              bgColorClass = 'bg-green-400';
+              break;
+            case 'emerald':
+              bgColorClass = 'bg-emerald-400';
+              break;
+            case 'lime':
+              bgColorClass = 'bg-lime-400';
+              break;
+            case 'pink':
+              bgColorClass = 'bg-pink-400';
+              break;
+            case 'violet':
+              bgColorClass = 'bg-violet-400';
+              break;
+            default:
+              bgColorClass = 'bg-primary';
+          }
+          
+          return (
+            <div
+              key={i}
+              className={`absolute rounded-full ${bgColorClass}/30`}
+              style={{
+                width: `${Math.random() * 10 + 5}px`,
+                height: `${Math.random() * 10 + 5}px`,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+              }}
+            />
+          );
+        })}
       </div>
       <span className="font-medium text-sm text-neutral-800 z-10">{theme.name}</span>
     </div>

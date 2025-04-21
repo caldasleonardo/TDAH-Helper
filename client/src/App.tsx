@@ -85,7 +85,7 @@ function App() {
                   <ThemeLayout>
                     <div style={contentStyle} className="relative z-10">
                       <Toaster />
-                      <div className="absolute top-4 right-4 z-50">
+                      <div className="fixed top-4 right-4 z-50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm rounded-full shadow-md">
                         <ThemeSelector />
                       </div>
                       <Router />

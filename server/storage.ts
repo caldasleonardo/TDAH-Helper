@@ -853,6 +853,352 @@ export class DatabaseStorage implements IStorage {
       trendData
     };
   }
+  
+  // Implementação dos métodos de gerenciamento de Achievements
+  async getAllAchievements(): Promise<Achievement[]> {
+    return await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.active, true))
+      .orderBy([achievements.category, achievements.title]);
+  }
+  
+  async getAchievementsByCategory(category: string): Promise<Achievement[]> {
+    return await db
+      .select()
+      .from(achievements)
+      .where(
+        and(
+          eq(achievements.category, category),
+          eq(achievements.active, true)
+        )
+      )
+      .orderBy(achievements.title);
+  }
+  
+  async getAchievementById(id: number): Promise<Achievement | undefined> {
+    const [achievement] = await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.id, id));
+    
+    return achievement;
+  }
+  
+  async getUserAchievements(userId: number): Promise<{
+    achievement: Achievement;
+    progress: number;
+    completed: boolean;
+    completedAt?: Date;
+  }[]> {
+    // Buscar todos os achievements ativos primeiro
+    const allAchievements = await this.getAllAchievements();
+    
+    // Buscar os achievements do usuário
+    const userAchievementsRaw = await db
+      .select()
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, userId));
+    
+    // Mapear para o formato desejado
+    const userAchievementsMap = new Map(
+      userAchievementsRaw.map(ua => [ua.achievementId, ua])
+    );
+    
+    // Construir o resultado final
+    const result = allAchievements.map(achievement => {
+      const userAchievement = userAchievementsMap.get(achievement.id);
+      
+      return {
+        achievement,
+        progress: userAchievement ? userAchievement.progress : 0,
+        completed: userAchievement ? userAchievement.completed : false,
+        completedAt: userAchievement?.completedAt,
+      };
+    });
+    
+    return result;
+  }
+  
+  async createUserAchievement(data: InsertUserAchievement): Promise<UserAchievement> {
+    const [userAchievement] = await db
+      .insert(userAchievements)
+      .values(data)
+      .returning();
+    
+    return userAchievement;
+  }
+  
+  async updateUserAchievementProgress(userId: number, achievementId: number, progress: number): Promise<UserAchievement> {
+    // Verificar se o usuário já tem esta conquista
+    const [existingUserAchievement] = await db
+      .select()
+      .from(userAchievements)
+      .where(
+        and(
+          eq(userAchievements.userId, userId),
+          eq(userAchievements.achievementId, achievementId)
+        )
+      );
+    
+    // Se o usuário já tiver a conquista, atualizar o progresso
+    if (existingUserAchievement) {
+      // Buscar os detalhes da conquista para verificar se o requisito foi completado
+      const achievement = await this.getAchievementById(achievementId);
+      
+      // Se a conquista não existe mais ou não está ativa, apenas retornar o existente
+      if (!achievement || !achievement.active) {
+        return existingUserAchievement;
+      }
+      
+      // Verificar se o novo progresso completa a conquista
+      const completed = progress >= achievement.requiredCount;
+      const completedAt = completed && !existingUserAchievement.completed 
+        ? new Date() 
+        : existingUserAchievement.completedAt;
+      
+      // Atualizar o progresso
+      const [updatedUserAchievement] = await db
+        .update(userAchievements)
+        .set({
+          progress,
+          completed,
+          completedAt
+        })
+        .where(eq(userAchievements.id, existingUserAchievement.id))
+        .returning();
+      
+      // Se a conquista foi concluída agora, adicionar XP ao usuário
+      if (completed && !existingUserAchievement.completed) {
+        await this.addUserXP(userId, achievement.xpPoints);
+      }
+      
+      return updatedUserAchievement;
+    } else {
+      // Se o usuário não tiver a conquista, criar uma nova entrada
+      const achievement = await this.getAchievementById(achievementId);
+      
+      // Se a conquista não existe ou não está ativa, lançar erro
+      if (!achievement || !achievement.active) {
+        throw new Error("Conquista não encontrada ou inativa");
+      }
+      
+      // Verificar se o progresso inicial já completa a conquista
+      const completed = progress >= achievement.requiredCount;
+      const completedAt = completed ? new Date() : undefined;
+      
+      // Criar a conquista do usuário
+      const userAchievement = await this.createUserAchievement({
+        userId,
+        achievementId,
+        progress,
+        completed
+      });
+      
+      // Se a conquista já foi concluída, adicionar XP ao usuário
+      if (completed) {
+        await this.addUserXP(userId, achievement.xpPoints);
+      }
+      
+      return userAchievement;
+    }
+  }
+  
+  async completeUserAchievement(userId: number, achievementId: number): Promise<UserAchievement> {
+    // Verificar se o usuário já tem esta conquista
+    const [existingUserAchievement] = await db
+      .select()
+      .from(userAchievements)
+      .where(
+        and(
+          eq(userAchievements.userId, userId),
+          eq(userAchievements.achievementId, achievementId)
+        )
+      );
+    
+    // Buscar os detalhes da conquista
+    const achievement = await this.getAchievementById(achievementId);
+    
+    // Se a conquista não existe ou não está ativa, lançar erro
+    if (!achievement || !achievement.active) {
+      throw new Error("Conquista não encontrada ou inativa");
+    }
+    
+    // Se o usuário já tiver a conquista, marcar como completa
+    if (existingUserAchievement) {
+      // Não fazer nada se já estiver completa
+      if (existingUserAchievement.completed) {
+        return existingUserAchievement;
+      }
+      
+      // Atualizar para completa
+      const [updatedUserAchievement] = await db
+        .update(userAchievements)
+        .set({
+          progress: achievement.requiredCount,
+          completed: true,
+          completedAt: new Date()
+        })
+        .where(eq(userAchievements.id, existingUserAchievement.id))
+        .returning();
+      
+      // Adicionar XP ao usuário
+      await this.addUserXP(userId, achievement.xpPoints);
+      
+      return updatedUserAchievement;
+    } else {
+      // Se o usuário não tiver a conquista, criar uma nova entrada já completa
+      const userAchievement = await this.createUserAchievement({
+        userId,
+        achievementId,
+        progress: achievement.requiredCount,
+        completed: true
+      });
+      
+      // Adicionar XP ao usuário
+      await this.addUserXP(userId, achievement.xpPoints);
+      
+      return userAchievement;
+    }
+  }
+  
+  // Implementação dos métodos de gerenciamento de Níveis de Usuário
+  async getUserLevel(userId: number): Promise<UserLevel | undefined> {
+    const [userLevel] = await db
+      .select()
+      .from(userLevels)
+      .where(eq(userLevels.userId, userId));
+    
+    return userLevel;
+  }
+  
+  async createUserLevel(data: InsertUserLevel): Promise<UserLevel> {
+    const [userLevel] = await db
+      .insert(userLevels)
+      .values(data)
+      .returning();
+    
+    return userLevel;
+  }
+  
+  async updateUserLevel(userId: number, updates: Partial<InsertUserLevel>): Promise<UserLevel> {
+    // Adicionar a data de atualização
+    const updatesWithTimestamp = {
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    const [updatedUserLevel] = await db
+      .update(userLevels)
+      .set(updatesWithTimestamp)
+      .where(eq(userLevels.userId, userId))
+      .returning();
+    
+    return updatedUserLevel;
+  }
+  
+  async addUserXP(userId: number, xpPoints: number): Promise<{
+    userLevel: UserLevel;
+    leveledUp: boolean;
+    previousLevel?: number;
+  }> {
+    // Buscar o nível atual do usuário
+    let userLevel = await this.getUserLevel(userId);
+    
+    // Se o usuário não tiver um nível, criar um
+    if (!userLevel) {
+      userLevel = await this.createUserLevel({
+        userId,
+        level: 1,
+        xpPoints: 0,
+        loginStreak: 0,
+        lastLoginDate: new Date()
+      });
+    }
+    
+    // Calcular o XP total e verificar se há upagem de nível
+    const totalXP = userLevel.xpPoints + xpPoints;
+    let leveledUp = false;
+    let previousLevel;
+    
+    // Verificar se o usuário subiu de nível
+    if (totalXP >= userLevel.xpToNextLevel) {
+      leveledUp = true;
+      previousLevel = userLevel.level;
+      
+      // Calcular o novo nível e XP para o próximo nível
+      const newLevel = userLevel.level + 1;
+      const remainingXP = totalXP - userLevel.xpToNextLevel;
+      const xpToNextLevel = 100 * newLevel; // Fórmula simples: 100 * nível
+      
+      // Atualizar o nível do usuário
+      userLevel = await this.updateUserLevel(userId, {
+        level: newLevel,
+        xpPoints: remainingXP,
+        xpToNextLevel
+      });
+    } else {
+      // Apenas atualizar o XP
+      userLevel = await this.updateUserLevel(userId, {
+        xpPoints: totalXP
+      });
+    }
+    
+    return {
+      userLevel,
+      leveledUp,
+      previousLevel
+    };
+  }
+  
+  async updateLoginStreak(userId: number): Promise<UserLevel> {
+    // Buscar o nível atual do usuário
+    let userLevel = await this.getUserLevel(userId);
+    
+    // Se o usuário não tiver um nível, criar um
+    if (!userLevel) {
+      userLevel = await this.createUserLevel({
+        userId,
+        level: 1,
+        xpPoints: 0,
+        loginStreak: 1, // Primeiro login
+        lastLoginDate: new Date()
+      });
+      
+      return userLevel;
+    }
+    
+    // Verificar se o último login foi há mais de 24h mas menos de 48h
+    const now = new Date();
+    const lastLogin = new Date(userLevel.lastLoginDate);
+    const timeDiffHours = (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60);
+    
+    let loginStreak = userLevel.loginStreak;
+    
+    if (timeDiffHours >= 20 && timeDiffHours <= 48) {
+      // Se o último login foi entre 20h e 48h atrás, incrementar streak
+      loginStreak += 1;
+      
+      // Verificar conquistas de login streak
+      const loginStreakAchievements = await this.getAchievementsByCategory('login_streak');
+      for (const achievement of loginStreakAchievements) {
+        if (loginStreak >= achievement.requiredCount) {
+          await this.updateUserAchievementProgress(userId, achievement.id, loginStreak);
+        }
+      }
+    } else if (timeDiffHours > 48) {
+      // Se o último login foi há mais de 48h, resetar streak
+      loginStreak = 1;
+    }
+    
+    // Atualizar o login streak e a data do último login
+    userLevel = await this.updateUserLevel(userId, {
+      loginStreak,
+      lastLoginDate: now
+    });
+    
+    return userLevel;
+  }
 }
 
 export const storage = new DatabaseStorage();

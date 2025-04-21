@@ -7,7 +7,11 @@ import {
   insertAppConfigSchema, 
   insertContentSchema,
   insertMediaSchema,
-  insertAdminUserSchema
+  insertAdminUserSchema,
+  insertUserAchievementSchema,
+  insertUserLevelSchema,
+  UserAchievement,
+  UserLevel
 } from "@shared/schema";
 import { ZodError } from "zod";
 import Stripe from "stripe";

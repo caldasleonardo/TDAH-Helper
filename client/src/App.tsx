@@ -10,6 +10,9 @@ import { SubscriptionProvider } from "./hooks/use-subscription";
 import { MoodTrackingProvider } from "./hooks/use-mood-tracking";
 import { ProtectedRoute } from "./lib/protected-route";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { CalmingThemeProvider } from "@/components/theme/CalmingThemeProvider";
+import { ThemeLayout } from "@/components/theme/ThemeLayout";
+import { ThemeSelector } from "@/components/theme/ThemeSelector";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import QuizPage from "@/pages/quiz-page";
@@ -75,13 +78,20 @@ function App() {
         <AuthProvider>
           <SubscriptionProvider>
             <MoodTrackingProvider>
-              <TooltipProvider>
-                <div style={contentStyle}>
-                  <Toaster />
-                  <Router />
-                  {!shouldHideBottomNav && <BottomNav />}
-                </div>
-              </TooltipProvider>
+              <CalmingThemeProvider>
+                <TooltipProvider>
+                  <ThemeLayout>
+                    <div style={contentStyle} className="relative z-10">
+                      <Toaster />
+                      <div className="absolute top-4 right-4 z-50">
+                        <ThemeSelector />
+                      </div>
+                      <Router />
+                      {!shouldHideBottomNav && <BottomNav />}
+                    </div>
+                  </ThemeLayout>
+                </TooltipProvider>
+              </CalmingThemeProvider>
             </MoodTrackingProvider>
           </SubscriptionProvider>
         </AuthProvider>

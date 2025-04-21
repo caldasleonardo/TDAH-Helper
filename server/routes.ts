@@ -1259,6 +1259,178 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API para sistema de conquistas (Achievements)
+  app.get("/api/achievements", async (req, res) => {
+    try {
+      const achievements = await storage.getAllAchievements();
+      res.json(achievements);
+    } catch (error: any) {
+      console.error("Erro ao buscar conquistas:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar conquistas", 
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/achievements/category/:category", async (req, res) => {
+    try {
+      const category = req.params.category;
+      
+      if (!category) {
+        return res.status(400).json({ message: "Categoria é obrigatória" });
+      }
+      
+      const achievements = await storage.getAchievementsByCategory(category);
+      res.json(achievements);
+    } catch (error: any) {
+      console.error(`Erro ao buscar conquistas por categoria [${req.params.category}]:`, error);
+      res.status(500).json({ 
+        message: "Erro ao buscar conquistas por categoria", 
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/user/achievements", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+
+      const userId = req.user.id;
+      const userAchievements = await storage.getUserAchievements(userId);
+      res.json(userAchievements);
+    } catch (error: any) {
+      console.error("Erro ao buscar conquistas do usuário:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar conquistas do usuário", 
+        error: error.message 
+      });
+    }
+  });
+
+  // Atualizar progresso de conquistas manualmente (apenas para testes ou admin)
+  app.post("/api/user/achievements/:achievementId/progress", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.body.userId);
+      const achievementId = parseInt(req.params.achievementId);
+      const progress = parseInt(req.body.progress);
+      
+      if (isNaN(userId) || isNaN(achievementId) || isNaN(progress)) {
+        return res.status(400).json({ 
+          message: "userId, achievementId e progress são obrigatórios e devem ser números" 
+        });
+      }
+      
+      const result = await storage.updateUserAchievementProgress(userId, achievementId, progress);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Erro ao atualizar progresso de conquista:", error);
+      res.status(500).json({ 
+        message: "Erro ao atualizar progresso de conquista", 
+        error: error.message 
+      });
+    }
+  });
+
+  // Completar uma conquista manualmente (apenas para testes ou admin)
+  app.post("/api/user/achievements/:achievementId/complete", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.body.userId);
+      const achievementId = parseInt(req.params.achievementId);
+      
+      if (isNaN(userId) || isNaN(achievementId)) {
+        return res.status(400).json({ 
+          message: "userId e achievementId são obrigatórios e devem ser números" 
+        });
+      }
+      
+      const result = await storage.completeUserAchievement(userId, achievementId);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Erro ao completar conquista:", error);
+      res.status(500).json({ 
+        message: "Erro ao completar conquista", 
+        error: error.message 
+      });
+    }
+  });
+
+  // API para sistema de níveis de usuário
+  app.get("/api/user/level", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+
+      const userId = req.user.id;
+      let userLevel = await storage.getUserLevel(userId);
+      
+      // Se o usuário não tiver um nível, criar um
+      if (!userLevel) {
+        userLevel = await storage.createUserLevel({
+          userId,
+          level: 1,
+          xpPoints: 0,
+          xpToNextLevel: 100,
+          loginStreak: 0,
+          lastLoginDate: new Date()
+        });
+      }
+      
+      res.json(userLevel);
+    } catch (error: any) {
+      console.error("Erro ao buscar nível do usuário:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar nível do usuário", 
+        error: error.message 
+      });
+    }
+  });
+
+  // Atualizar o login streak do usuário (chamado quando o usuário faz login)
+  app.post("/api/user/level/login-streak", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Autenticação necessária" });
+      }
+
+      const userId = req.user.id;
+      const userLevel = await storage.updateLoginStreak(userId);
+      res.json(userLevel);
+    } catch (error: any) {
+      console.error("Erro ao atualizar login streak:", error);
+      res.status(500).json({ 
+        message: "Erro ao atualizar login streak", 
+        error: error.message 
+      });
+    }
+  });
+
+  // Adicionar XP ao usuário manualmente (apenas para testes ou admin)
+  app.post("/api/user/level/add-xp", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.body.userId);
+      const xpPoints = parseInt(req.body.xpPoints);
+      
+      if (isNaN(userId) || isNaN(xpPoints)) {
+        return res.status(400).json({ 
+          message: "userId e xpPoints são obrigatórios e devem ser números" 
+        });
+      }
+      
+      const result = await storage.addUserXP(userId, xpPoints);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Erro ao adicionar XP ao usuário:", error);
+      res.status(500).json({ 
+        message: "Erro ao adicionar XP ao usuário", 
+        error: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

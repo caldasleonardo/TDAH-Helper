@@ -14,7 +14,8 @@ import {
   BarChart3Icon, 
   UserIcon,
   ArrowRightIcon,
-  BookOpenIcon
+  BookIcon,
+  FileTextIcon
 } from "lucide-react";
 import { motion, useAnimation } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -221,7 +222,7 @@ export default function HomePage() {
                 <Link href="/content">
                   <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 dark:from-purple-500/20 dark:to-purple-600/20 p-4 rounded-2xl shadow-sm transition-transform hover:scale-105">
                     <div className="h-10 w-10 flex items-center justify-center bg-purple-500/20 rounded-xl mb-2">
-                      <BookOpenIcon className="h-5 w-5 text-purple-500" />
+                      <BookIcon className="h-5 w-5 text-purple-500" />
                     </div>
                     <h4 className="font-medium text-sm text-neutral-800 dark:text-white">Conteúdo Educativo</h4>
                   </div>

@@ -127,7 +127,7 @@ export default function HomePage() {
   }, []);
   
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-primary/5 to-purple-600/5 dark:from-neutral-900 dark:to-black overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900 overflow-hidden">
       <Header />
       
       {/* Background com partículas animadas */}
@@ -145,33 +145,19 @@ export default function HomePage() {
           transition={{ duration: 0.5 }}
           className="bg-white/90 dark:bg-neutral-800/90 backdrop-blur-lg rounded-3xl mx-4 overflow-hidden shadow-xl"
         >
-          {/* Área superior com gradiente */}
-          <div className="bg-gradient-to-br from-primary to-purple-600 pt-8 pb-16 px-6 relative overflow-hidden">
-            {/* Círculos decorativos */}
-            <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10"></div>
-            <div className="absolute top-10 -left-10 w-24 h-24 rounded-full bg-white/5"></div>
-            
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", duration: 1 }}
-              className="relative z-10"
-            >
-              <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-white mb-1">TDAH Helper</h1>
-                <div className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-full">
-                  <BrainIcon className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              
-              <p className="text-white/80 text-sm mb-3 max-w-[280px]">
-                Descubra insights e estratégias personalizadas para o seu TDAH
-              </p>
-            </motion.div>
-          </div>
-          
           {/* Conteúdo principal */}
-          <div className="px-6 py-5 -mt-12">
+          <div className="px-6 py-6">
+            {/* Título da aplicação */}
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h1 className="text-xl font-bold dark:text-white">TDAH Helper</h1>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">Bem-vindo(a) ao seu assistente</p>
+              </div>
+              <div className="h-12 w-12 flex items-center justify-center bg-primary/10 dark:bg-primary/20 rounded-full">
+                <BrainIcon className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+            
             {/* Card em destaque */}
             <motion.div 
               initial={{ y: 20, opacity: 0 }}

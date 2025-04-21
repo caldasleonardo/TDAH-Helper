@@ -30,7 +30,7 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground overflow-x-hidden;
+    @apply font-sans antialiased bg-background text-foreground overflow-x-hidden max-w-[100vw];
   }
 
   /* Aplicar overflow auto em vez de scroll para contêineres com rolagem */
@@ -43,6 +43,8 @@
   /* Classe auxiliar para ocultar barras de rolagem até hover */
   .scrollbar-hide-until-hover {
     scrollbar-width: none;
+    max-width: 100%;
+    width: 100%;
   }
   
   .scrollbar-hide-until-hover:hover {

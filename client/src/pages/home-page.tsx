@@ -127,7 +127,7 @@ export default function HomePage() {
   }, []);
   
   return (
-    <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900 overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900 overflow-x-hidden">
       <Header />
       
       {/* Background com partículas animadas */}
@@ -147,17 +147,6 @@ export default function HomePage() {
         >
           {/* Conteúdo principal */}
           <div className="px-6 py-6">
-            {/* Título da aplicação */}
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h1 className="text-xl font-bold dark:text-white">TDAH Helper</h1>
-                <p className="text-neutral-600 dark:text-neutral-400 text-sm">Bem-vindo(a) ao seu assistente</p>
-              </div>
-              <div className="h-12 w-12 flex items-center justify-center bg-primary/10 dark:bg-primary/20 rounded-full">
-                <BrainIcon className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-            
             {/* Card em destaque */}
             <motion.div 
               initial={{ y: 20, opacity: 0 }}
@@ -228,7 +217,7 @@ export default function HomePage() {
                 <span className="text-xs text-primary">Ver mais</span>
               </div>
               
-              <div className="overflow-x-auto pb-4 -mx-6 px-6 flex space-x-4 scrollbar-hide-until-hover">
+              <div className="overflow-x-auto pb-4 px-2 flex space-x-4 scrollbar-hide-until-hover">
                 {[
                   {
                     text: "Finalmente entendi por que sempre tive dificuldades para me concentrar. As estratégias sugeridas realmente funcionam!",
@@ -273,7 +262,7 @@ export default function HomePage() {
         >
           <h3 className="font-semibold mb-3 text-neutral-800 dark:text-white pl-1">Recursos Premium</h3>
           
-          <div className="overflow-x-auto pb-4 -mx-4 px-4 flex space-x-4 scrollbar-hide-until-hover">
+          <div className="overflow-x-auto pb-4 px-2 flex space-x-4 scrollbar-hide-until-hover">
             <div className="bg-gradient-to-br from-orange-500/10 to-pink-500/10 dark:from-orange-500/20 dark:to-pink-500/20 p-4 rounded-2xl shadow-sm min-w-[200px] flex-shrink-0">
               <div className="h-10 w-10 flex items-center justify-center bg-orange-500/20 rounded-xl mb-2">
                 <BarChart3Icon className="h-5 w-5 text-orange-500" />
